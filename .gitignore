@@ -18,3 +18,7 @@ dist
 
 #Backup files
 *~
+
+# vim
+.*.swp
+.*.swo
