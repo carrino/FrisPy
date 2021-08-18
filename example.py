@@ -8,4 +8,5 @@ times = result.times
 x, y, z = result.x, result.y, result.z
 
 plt.plot(x, z)
+plt.plot(x, y)
 plt.show()
