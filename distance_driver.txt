@@ -1,0 +1,37 @@
+Bodies (1)
+Area	77802.60 mm^2
+Density	0.001 g / mm^3
+Mass	170.483 g
+Volume	1.435E+05 mm^3
+Physical Material	Plastic, Transparent
+Appearance	Acrylic (Clear)
+
+Bounding Box
+	Length 	 212.051 mm
+	Width 	 212.051 mm
+	Height 	 15.879 mm
+Center of Mass	0.00 mm, 0.00 mm, 0.00 mm
+diamater = 212.051 mm = 8.3484 inches
+radius = 106.0255 mm = 4.1742 inches
+
+Moment of Inertia at Center of Mass   (g mm^2)
+	Ixx = 6.183E+05
+	Ixy = 3.025E-09
+	Ixz = 0.00
+	Iyx = 3.025E-09
+	Iyy = 6.183E+05
+	Iyz = 0.00
+	Izx = 0.00
+	Izy = 0.00
+	Izz = 1.231E+06 -> 0.001231 kg * (m^2) divide by 10^9
+
+Moment of Inertia at Origin   (g mm^2)
+	Ixx = 6.183E+05
+	Ixy = 3.025E-09
+	Ixz = 0.00
+	Iyx = 3.025E-09
+	Iyy = 6.183E+05
+	Iyz = 0.00
+	Izx = 0.00
+	Izy = 0.00
+	Izz = 1.231E+06
