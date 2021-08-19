@@ -33,7 +33,6 @@ class Disc:
     def __init__(
         self,
         model: Optional[Model] = None,
-        eom: Optional[EOM] = None,
         initial_conditions: Optional[Dict[str, float]] = None,
     ):
         self._model = model or Model()
@@ -135,11 +134,9 @@ class Disc:
             "dgamma": 62.0,
         }
         for i in base_ICs:
-            if initial_conditions is not None:
-                assert (
-                    i in initial_conditions
-                ), f"{i} missing from initial conditions"
-        self._default_initial_conditions = initial_conditions or base_ICs
+            if initial_conditions is not None and i in initial_conditions:
+                base_ICs[i] = initial_conditions[i]
+        self._default_initial_conditions = base_ICs
 
     @property
     def ordered_coordinate_names(self) -> List[str]:

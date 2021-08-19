@@ -21,12 +21,17 @@ class Model:
             "PD0": 0.18,
             "PDa": 0.69,
             "PTxwx": -1.3e-2,
-            "PTxwz": -1.7e-3,
+            "PTxwz": 0,
             "PTy0": -8.2e-2,
             "PTya": 0.43,
             "PTywy": -1.4e-2,
             "PTzwz": -3.4e-5,
             "alpha_0": -4 * np.pi / 180,
+            "I_zz": 0.002352,
+            "I_xx": 0.001219,
+            "mass": 0.175,
+            "diameter": 0.27,
+            "area": np.pi * (0.27 / 2) ** 2
         }
         for k, v in kwargs.items():
             assert k in self.coefficients, f"invalid coefficient name {k}"
@@ -70,6 +75,26 @@ class Model:
     @property
     def coefficients(self) -> Dict[str, float]:
         return self._coefficients
+
+    @property
+    def mass(self) -> float:
+        return self.get_value("mass")
+
+    @property
+    def area(self) -> float:
+        return self.get_value("area")
+
+    @property
+    def diameter(self) -> float:
+        return self.get_value("diameter")
+
+    @property
+    def I_zz(self) -> float:
+        return self.get_value("I_zz")
+
+    @property
+    def I_xx(self) -> float:
+        return self.get_value("I_xx")
 
     #####################################################################
     # Below are functions connecting physical variables to force/torque #
