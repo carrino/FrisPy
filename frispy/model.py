@@ -16,22 +16,22 @@ class Model:
 
     def __init__(self, **kwargs):
         self._coefficients: Dict[str, float] = {
-            "PL0": 0.33,
-            "PLa": 1.9,
-            "PD0": 0.18,
-            "PDa": 0.69,
-            "PTxwx": -1.3e-2,
-            "PTxwz": 0,
-            "PTy0": -8.2e-2,
-            "PTya": 0.43,
-            "PTywy": -1.4e-2,
-            "PTzwz": -3.4e-5,
-            "alpha_0": -4 * np.pi / 180,
+            "PL0": 0.33, # lift factor at 0 AoA
+            "PLa": 1.9, # lift factor linear with AoA
+            "PD0": 0.18, # drag at 0 lift
+            "PDa": 0.69, # quadratic with AoA from zero lift point
+            "PTxwx": -1.3e-2, # dampening factor for roll
+            "PTxwz": 0, # rolling moment related to spin presession?
+            "PTy0": -8.2e-2, # pitching moment from disc stability at 0 AoA
+            "PTya": 0.43, # pitching moment from disc stability linear in AoA
+            "PTywy": -1.4e-2, # dampening factor for pitch
+            "PTzwz": -3.4e-5, # spin down
+            "alpha_0": -4 * np.pi / 180, # angle of zero lift
             "I_zz": 0.002352,
             "I_xx": 0.001219,
             "mass": 0.175,
             "diameter": 0.27,
-            "area": np.pi * (0.27 / 2) ** 2
+            "area": np.pi * (0.27 / 2) ** 2,
         }
         for k, v in kwargs.items():
             assert k in self.coefficients, f"invalid coefficient name {k}"
