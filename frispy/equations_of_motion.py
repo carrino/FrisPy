@@ -93,19 +93,23 @@ class EOM:
             * self.model.diameter
             * self.model.area
         )
-        wx, wy, wz = ang_velocity
 
-        tx = self.model.C_x(wx, wz) * res["torque_amplitude"]
-        ty = self.model.C_y(aoa, wy) * res["torque_amplitude"]
-        tz = self.model.C_z(wz) * res["torque_amplitude"]
+        wx, wy, wz = ang_velocity
+        tx = self.model.C_x(wx, wz) * res["torque_amplitude"] * res["unit_vectors"]["xhat"]
+        total = (res["rotation_matrix"] @ tx) / self.model.I_xx
+        ty = self.model.C_y(aoa, wy) * res["torque_amplitude"] * res["unit_vectors"]["yhat"]
+        total += (res["rotation_matrix"] @ ty) / self.model.I_xx
+        total += self.model.C_z(wz) * res["torque_amplitude"] * np.array([0, 0, 1 / self.model.I_zz])
 
         # Add gyroscopic precession; this handles wobble as well as transferring pitching moments into turn/fade
         delta_moment = self.model.I_zz - self.model.I_xx
-        tx -= delta_moment * wy * wz
-        ty += delta_moment * wy * wz
+        total -= delta_moment * wy * wz * np.array([1 / self.model.I_xx, 0, 0])
+        total += delta_moment * wz * wx * np.array([0, 1 / self.model.I_xx, 0])
 
-        res["T_total"] = np.array([tx, ty, tz])
-        res["T"] = np.array([tx / self.model.I_xx, ty / self.model.I_xx, tz / self.model.I_zz])
+        #total -= delta_moment * wy * wz * np.array([1 / self.model.I_xx, 0, 0])
+        #total += delta_moment * wz * wx * np.array([0, 1 / self.model.I_xx, 0])
+
+        res["T"] = total
         return res
 
     def compute_derivatives(

@@ -126,12 +126,12 @@ class Disc:
             "vx": 10.0,
             "vy": 0,
             "vz": 0,
-            "phi": 0,
-            "theta": 0,
+            "phi": 0, # roll aka anhyzer RHBH aka hyzer RHFH
+            "theta": 0, # pitch aka nose down
             "gamma": 0,
             "dphi": 0,
             "dtheta": 0,
-            "dgamma": 62.0,
+            "dgamma": 62.0, # spin, positive is RHBH or clockwise from above
         }
         for i in base_ICs:
             if initial_conditions is not None and i in initial_conditions:

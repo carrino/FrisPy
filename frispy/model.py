@@ -21,7 +21,7 @@ class Model:
             "PD0": 0.18, # drag at 0 lift
             "PDa": 0.69, # quadratic with AoA from zero lift point
             "PTxwx": -1.3e-2, # dampening factor for roll
-            "PTxwz": 0, # rolling moment related to spin presession?
+            "PTxwz": 0, # rolling moment related to spin precession?
             "PTy0": -8.2e-2, # pitching moment from disc stability at 0 AoA
             "PTya": 0.43, # pitching moment from disc stability linear in AoA
             "PTywy": -1.4e-2, # dampening factor for pitch
@@ -31,11 +31,16 @@ class Model:
             "I_xx": 0.001219,
             "mass": 0.175,
             "diameter": 0.27,
-            "area": np.pi * (0.27 / 2) ** 2,
+            "rim_depth": 0.02,
+            "rim_width": 0.007,
         }
         for k, v in kwargs.items():
             assert k in self.coefficients, f"invalid coefficient name {k}"
             self.coefficients[k] = v
+        self.coefficients["area"] = np.pi * (self.coefficients["diameter"] / 2) ** 2
+        self.coefficients["cavity_volume"] = (self.coefficients["rim_depth"]
+                * np.pi * (self.coefficients["diameter"] / 2 - self.coefficients["rim_width"]) ** 2
+        )
 
     def set_value(self, name: str, value: float) -> None:
         """
