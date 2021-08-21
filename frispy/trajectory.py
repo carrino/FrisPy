@@ -124,8 +124,8 @@ class Trajectory:
             ]
         )
         # Angular velocity in lab coordinates
-        w_lab = w_prime @ R  # why does w_prime exist?
-        #w_lab = ang_velocity @ R
+        #w_lab = w_prime @ R  # why does w_prime exist?
+        w_lab = ang_velocity @ R
 
         # Angular velocity components along the unit vectors in the lab frame
         U = np.array([xhat, yhat, zhat])

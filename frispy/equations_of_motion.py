@@ -94,22 +94,28 @@ class EOM:
             * self.model.area
         )
 
+        i_xx = self.model.I_xx
+        i_zz = self.model.I_zz
+        torque = res["torque_amplitude"]
         wx, wy, wz = ang_velocity
-        tx = self.model.C_x(wx, wz) * res["torque_amplitude"] * res["unit_vectors"]["xhat"]
-        total = (res["rotation_matrix"] @ tx) / self.model.I_xx
-        ty = self.model.C_y(aoa, wy) * res["torque_amplitude"] * res["unit_vectors"]["yhat"]
-        total += (res["rotation_matrix"] @ ty) / self.model.I_xx
-        total += self.model.C_z(wz) * res["torque_amplitude"] * np.array([0, 0, 1 / self.model.I_zz])
 
-        # Add gyroscopic precession; this handles wobble as well as transferring pitching moments into turn/fade
+        # Handle pitch and roll as precession around Z and not a change to angular velocity.
+        #pitch_up = self.model.C_x(wz) * res["torque_amplitude"] * res["unit_vectors"]["yhat"]
+        #delta_x = (res["rotation_matrix"] @ pitch_up)
+        roll = -self.model.C_y(aoa) * res["torque_amplitude"]
+        #delta_y = (res["rotation_matrix"] @ roll)
+
+        # Dampen angular velocity
+        dampening = self.model.dampening_factor
+        dampening_z = self.model.dampening_z
+        acc = np.array([wx * dampening / i_xx, wy * dampening / i_xx, wz * dampening_z / i_zz]) * torque
+
+        # Handle wobble by precession of angular velocity
         delta_moment = self.model.I_zz - self.model.I_xx
-        total -= delta_moment * wy * wz * np.array([1 / self.model.I_xx, 0, 0])
-        total += delta_moment * wz * wx * np.array([0, 1 / self.model.I_xx, 0])
+        acc += delta_moment / i_xx * wz * np.array([-wy, wx, 0])
 
-        #total -= delta_moment * wy * wz * np.array([1 / self.model.I_xx, 0, 0])
-        #total += delta_moment * wz * wx * np.array([0, 1 / self.model.I_xx, 0])
-
-        res["T"] = total
+        res["precession"] = np.array([roll / (i_zz * wz), 0, 0])
+        res["T"] = acc
         return res
 
     def compute_derivatives(
@@ -150,8 +156,8 @@ class EOM:
                 result["Acc"][0],  # x component of acceleration
                 result["Acc"][1],  # y component of acceleration
                 result["Acc"][2],  # z component of acceleration
-                dphi,
-                dtheta,
+                dphi + result["precession"][0],
+                dtheta + result["precession"][1],
                 dgamma,
                 result["T"][0],  # phi component of ang. acc.
                 result["T"][1],  # theta component of ang. acc.

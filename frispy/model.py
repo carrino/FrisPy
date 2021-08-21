@@ -101,6 +101,14 @@ class Model:
     def I_xx(self) -> float:
         return self.get_value("I_xx")
 
+    @property
+    def dampening_factor(self) -> float:
+        return self.get_value("PTxwx")
+
+    @property
+    def dampening_z(self) -> float:
+        return self.get_value("PTzwz")
+
     #####################################################################
     # Below are functions connecting physical variables to force/torque #
     # scaling factors (the `C`s)                                        #
@@ -135,7 +143,7 @@ class Model:
         alpha_0 = self.get_value("alpha_0")
         return PD0 + PDa * (alpha - alpha_0) ** 2
 
-    def C_x(self, wx: float, wz: float) -> float:
+    def C_x(self, wz: float) -> float:
         """
         'x'-torque scale factor. Linearly additive in the 'z' angular velocity
         (`w_z`) and the 'x' angular velocity (`w_x`).
@@ -147,11 +155,10 @@ class Model:
         Returns:
             (float) 'x'-torque scale factor
         """
-        PTxwx = self.get_value("PTxwx")
         PTxwz = self.get_value("PTxwz")
-        return PTxwx * wx + PTxwz * wz
+        return PTxwz * wz
 
-    def C_y(self, alpha: float, wy: float) -> float:
+    def C_y(self, alpha: float) -> float:
         """
         'y'-torque scale factor. Linearly additive in the 'y' angular velocity
         (`w_y`) and the angle of attack (`alpha`).
@@ -164,20 +171,5 @@ class Model:
             (float) 'y'-torque scale factor
         """
         PTy0 = self.get_value("PTy0")
-        PTywy = self.get_value("PTywy")
         PTya = self.get_value("PTya")
-        return PTy0 + PTywy * wy + PTya * alpha
-
-    def C_z(self, wz: float) -> float:
-        """
-        'z'-torque scale factor. Linear in the 'z' angular velocity
-        (`w_z`).
-
-        Args:
-            wz (float): 'z' angular velocity in radians per second
-
-        Returns:
-            (float) 'z'-torque scale factor
-        """
-        PTzwz = self.get_value("PTzwz")
-        return PTzwz * wz
+        return PTy0 + PTya * alpha
