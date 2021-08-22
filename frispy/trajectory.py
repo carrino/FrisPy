@@ -5,6 +5,7 @@ for the disc trajectory.
 
 from numbers import Number
 from typing import Dict, Union
+from scipy.spatial.transform import Rotation
 
 import numpy as np
 
@@ -108,24 +109,17 @@ class Trajectory:
         # Rotation matrix
         R = self.rotation_matrix(phi, theta)
         # Unit vectors
-        zhat = R[2]
+        zhat = R @ np.array([0, 0, 1])
         v_dot_zhat = velocity @ zhat
         v_in_plane = velocity - zhat * v_dot_zhat
         xhat = v_in_plane / np.linalg.norm(v_in_plane)
         yhat = np.cross(zhat, xhat)
+
         # Angle of attack
         angle_of_attack = -np.arctan(v_dot_zhat / np.linalg.norm(v_in_plane))
-        # Disc angular velocities
-        w_prime = np.array(
-            [
-                ang_velocity[0] * np.cos(theta),
-                ang_velocity[1],
-                ang_velocity[0] * np.sin(theta) + ang_velocity[2],
-            ]
-        )
+
         # Angular velocity in lab coordinates
-        #w_lab = w_prime @ R  # why does w_prime exist?
-        w_lab = ang_velocity @ R
+        w_lab = R @ ang_velocity
 
         # Angular velocity components along the unit vectors in the lab frame
         U = np.array([xhat, yhat, zhat])
@@ -134,7 +128,6 @@ class Trajectory:
             "unit_vectors": {"xhat": xhat, "yhat": yhat, "zhat": zhat},
             "angle_of_attack": angle_of_attack,
             "rotation_matrix": R,
-            "w_prime": w_prime,
             "w_lab": w_lab,
             "w": w,
         }
@@ -146,10 +139,16 @@ class Trajectory:
         lab frame to the disc frame. Note that because of azimuthal
         symmetry, the azimuthal angle (`gamma`) is not used.
         """
+
+        rot: Rotation = Rotation.from_euler('xy', [phi, theta])
+        matrix = rot.as_matrix()
+        #matrix = matrix.transpose()
+
+        # first rotate by phi (X/anhyzer/roll) then around theta (Y/nose down/pitch)
         sp = np.sin(phi)
         cp = np.cos(phi)
         st = np.sin(theta)
         ct = np.cos(theta)
-        return np.array(
-            [[ct, sp * st, -st * cp], [0, cp, sp], [st, -sp * ct, cp * ct]]
-        )
+        result = np.array([[ct, sp * st, -st * cp], [0, cp, sp], [st, -sp * ct, cp * ct]])
+
+        return matrix

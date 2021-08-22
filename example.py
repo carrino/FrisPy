@@ -29,7 +29,7 @@ nuke = Model(**{
 })
 
 #disc = Disc()
-disc = Disc(None, {"vx": 25, "dgamma": -120, "vz": 10, "theta": 0.0, "phi": 0})
+disc = Disc(None, {"vx": 20, "dgamma": -12000, "vz": 5, "theta": -0.5, "phi": 0})
 #disc = Disc(nuke, {"vx": 35, "dgamma": -100, "dtheta": 0, "vz": 0, "theta": 0.0, "phi": 0})
 #phi is anhyzer (roll)
 #theta is nose down (pitch)
@@ -41,8 +41,6 @@ t, x, y, z, phi, dtheta, theta = result.times, result.x, result.y, result.z, res
 
 plt.plot(x, y)
 plt.plot(x, z)
-#plt.plot(x, result.vx)
-#plt.plot(t, theta)
 
 #plt.plot(t, result.dtheta)
 #plt.plot(t, result.dphi)

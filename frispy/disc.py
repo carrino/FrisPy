@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import Dict, List, Optional
 
 from scipy.integrate import solve_ivp
@@ -87,6 +88,7 @@ class Disc:
             y0=self.initial_conditions_as_ordered_list,
             **solver_kwargs,
         )
+        pprint(result.message)
         if solver_kwargs.get("dense_output", False):
             return result
 

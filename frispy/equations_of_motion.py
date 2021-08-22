@@ -102,8 +102,10 @@ class EOM:
         # Handle pitch and roll as precession around Z and not a change to angular velocity.
         #pitch_up = self.model.C_x(wz) * res["torque_amplitude"] * res["unit_vectors"]["yhat"]
         #delta_x = (res["rotation_matrix"] @ pitch_up)
-        roll = -self.model.C_y(aoa) * res["torque_amplitude"]
         #delta_y = (res["rotation_matrix"] @ roll)
+
+        #roll = self.model.C_y(aoa) * res["torque_amplitude"] * np.array([1, 0, 0])
+        roll = self.model.C_y(aoa) * res["torque_amplitude"] * (res["rotation_matrix"] @ res["unit_vectors"]["xhat"])
 
         # Dampen angular velocity
         dampening = self.model.dampening_factor
@@ -114,7 +116,7 @@ class EOM:
         delta_moment = self.model.I_zz - self.model.I_xx
         acc += delta_moment / i_xx * wz * np.array([-wy, wx, 0])
 
-        res["precession"] = np.array([roll / (i_zz * wz), 0, 0])
+        res["precession"] = roll / (i_zz * wz)
         res["T"] = acc
         return res
 
@@ -145,6 +147,7 @@ class EOM:
             return coordinates * 0
 
         velocity = np.array([vx, vy, vz])
+        # angular velocity is defined relative to zhat
         ang_velocity = np.array([dphi, dtheta, dgamma])
         result = self.compute_forces(phi, theta, velocity, ang_velocity)
         result = self.compute_torques(velocity, ang_velocity, result)
