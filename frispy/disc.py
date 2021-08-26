@@ -1,7 +1,9 @@
+import math
 from pprint import pprint
 from typing import Dict, List, Optional
 
 from scipy.integrate import solve_ivp
+from scipy.spatial.transform import Rotation
 
 from frispy.environment import Environment
 from frispy.equations_of_motion import EOM
@@ -128,9 +130,10 @@ class Disc:
             "vx": 10.0,
             "vy": 0,
             "vz": 0,
-            "phi": 0, # roll aka anhyzer RHBH aka hyzer RHFH
-            "theta": 0, # pitch aka nose down
-            "gamma": 0,
+            "qx": 0,
+            "qy": 0,
+            "qz": 0,
+            "qw": 1,
             "dphi": 0,
             "dtheta": 0,
             "dgamma": 62.0, # spin, positive is RHBH or clockwise from above
@@ -138,6 +141,21 @@ class Disc:
         for i in base_ICs:
             if initial_conditions is not None and i in initial_conditions:
                 base_ICs[i] = initial_conditions[i]
+
+        anhyzer = 0
+        if initial_conditions is not None and "hyzer" in initial_conditions:
+            anhyzer -= initial_conditions["hyzer"] * math.pi / 180
+
+        pitch = math.atan2(-base_ICs["vz"], base_ICs["vx"])
+        if initial_conditions is not None and "nose_up" in initial_conditions:
+            pitch -= initial_conditions["nose_up"] * math.pi / 180
+
+        rotation = Rotation.from_euler("xy", [anhyzer, pitch])
+        quat = rotation.as_quat()
+        base_ICs["qx"] = quat[0]
+        base_ICs["qy"] = quat[1]
+        base_ICs["qz"] = quat[2]
+        base_ICs["qw"] = quat[3]
         self._default_initial_conditions = base_ICs
 
     @property
@@ -149,9 +167,10 @@ class Disc:
             "vx",
             "vy",
             "vz",
-            "phi",
-            "theta",
-            "gamma",
+            "qx",
+            "qy",
+            "qz",
+            "qw",
             "dphi",
             "dtheta",
             "dgamma",
@@ -197,9 +216,10 @@ class FrisPyResults:
         "vx",
         "vy",
         "vz",
-        "phi",
-        "theta",
-        "gamma",
+        "qx",
+        "qy",
+        "qz",
+        "qw",
         "dphi",
         "dtheta",
         "dgamma",

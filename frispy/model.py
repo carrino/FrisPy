@@ -1,7 +1,8 @@
 """
 Physical model for the forces and torques on a disc.
 """
-
+import math
+from pprint import pprint
 from typing import Dict
 
 import numpy as np
@@ -33,6 +34,7 @@ class Model:
             "diameter": 0.27,
             "rim_depth": 0.02,
             "rim_width": 0.007,
+            "height": 0.032,
         }
         for k, v in kwargs.items():
             assert k in self.coefficients, f"invalid coefficient name {k}"
@@ -41,6 +43,7 @@ class Model:
         self.coefficients["cavity_volume"] = (self.coefficients["rim_depth"]
                 * np.pi * (self.coefficients["diameter"] / 2 - self.coefficients["rim_width"]) ** 2
         )
+        pprint(2 * self.coefficients["cavity_volume"] / self.coefficients["height"] / self.coefficients["diameter"] * 180 / math.pi)
 
     def set_value(self, name: str, value: float) -> None:
         """

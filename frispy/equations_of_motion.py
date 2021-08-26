@@ -1,11 +1,12 @@
 from typing import Dict, Union
 
 import numpy as np
+import math
 
 from frispy.environment import Environment
 from frispy.model import Model
 from frispy.trajectory import Trajectory
-
+from scipy.spatial.transform import Rotation
 
 class EOM:
     """
@@ -39,8 +40,7 @@ class EOM:
 
     def compute_forces(
         self,
-        phi: float,
-        theta: float,
+        rotation: Rotation,
         velocity: np.ndarray,
         ang_velocity: np.ndarray,
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
@@ -50,9 +50,7 @@ class EOM:
         Args:
         TODO
         """
-        res = self.trajectory.calculate_intermediate_quantities(
-            phi, theta, velocity, ang_velocity
-        )
+        res = self.trajectory.calculate_intermediate_quantities(rotation, velocity, ang_velocity)
         aoa = res["angle_of_attack"]
         vhat = velocity / np.linalg.norm(velocity)
         force_amplitude = (
@@ -82,6 +80,7 @@ class EOM:
         self,
         velocity: np.ndarray,
         ang_velocity: np.ndarray,
+        rotation: Rotation,
         res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
 
@@ -97,15 +96,35 @@ class EOM:
         i_xx = self.model.I_xx
         i_zz = self.model.I_zz
         torque = res["torque_amplitude"]
-        wx, wy, wz = ang_velocity
+        wz = ang_velocity[2]
+
 
         # Handle pitch and roll as precession around Z and not a change to angular velocity.
-        #pitch_up = self.model.C_x(wz) * res["torque_amplitude"] * res["unit_vectors"]["yhat"]
-        #delta_x = (res["rotation_matrix"] @ pitch_up)
-        #delta_y = (res["rotation_matrix"] @ roll)
+        roll = self.model.C_y(aoa) * res["torque_amplitude"] * res["unit_vectors"]["xhat"]
+        pitch_up = self.model.C_x(wz) * res["torque_amplitude"] * res["unit_vectors"]["yhat"]
 
-        #roll = self.model.C_y(aoa) * res["torque_amplitude"] * np.array([1, 0, 0])
-        roll = self.model.C_y(aoa) * res["torque_amplitude"] * (res["rotation_matrix"] @ res["unit_vectors"]["xhat"])
+        wobble = res["w"]
+        w = (roll + pitch_up + wobble) / (i_zz * wz)
+
+
+        # https://www.euclideanspace.com/physics/kinematics/angularvelocity/QuaternionDifferentiation2.pdf
+        wnorm = np.linalg.norm(w)
+        wquat: Rotation = Rotation.from_quat([w[0], w[1], w[2], 0]) * rotation
+        quat1 = rotation.as_quat()
+        quat2 = wquat.as_quat()
+
+        self.compute_wobble_precession(ang_velocity, torque, res)
+        res["dq"] = wquat.as_quat() * wnorm / 2
+        return res
+
+    def compute_wobble_precession(
+            self,
+            ang_velocity: np.ndarray,
+            torque: float,
+            res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]):
+        i_xx = self.model.I_xx
+        i_zz = self.model.I_zz
+        wx, wy, wz = ang_velocity
 
         # Dampen angular velocity
         dampening = self.model.dampening_factor
@@ -116,9 +135,12 @@ class EOM:
         delta_moment = self.model.I_zz - self.model.I_xx
         acc += delta_moment / i_xx * wz * np.array([-wy, wx, 0])
 
-        res["precession"] = roll / (i_zz * wz)
         res["T"] = acc
-        return res
+
+    @staticmethod
+    def expand_quaternion(qx: float, qy: float, qz: float, qw: float) -> Rotation:
+        vector = np.array([qx, qy, qz, qw])
+        return Rotation.from_quat(vector)
 
     def compute_derivatives(
         self, time: float, coordinates: np.ndarray
@@ -141,16 +163,18 @@ class EOM:
         Returns:
           derivatives of all coordinates
         """
-        x, y, z, vx, vy, vz, phi, theta, gamma, dphi, dtheta, dgamma = coordinates
+        x, y, z, vx, vy, vz, qx, qy, qz, qw, dphi, dtheta, dgamma = coordinates
         # If the disk hit the ground, then stop calculations
         if z <= 0:
             return coordinates * 0
 
         velocity = np.array([vx, vy, vz])
-        # angular velocity is defined relative to zhat
+        rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
+        rot_array = rotation.as_quat()
+        # angular velocity is defined relative to z after rotaiton
         ang_velocity = np.array([dphi, dtheta, dgamma])
-        result = self.compute_forces(phi, theta, velocity, ang_velocity)
-        result = self.compute_torques(velocity, ang_velocity, result)
+        result = self.compute_forces(rotation, velocity, ang_velocity)
+        result = self.compute_torques(velocity, ang_velocity, rotation, result)
         derivatives = np.array(
             [
                 vx,
@@ -159,11 +183,12 @@ class EOM:
                 result["Acc"][0],  # x component of acceleration
                 result["Acc"][1],  # y component of acceleration
                 result["Acc"][2],  # z component of acceleration
-                dphi + result["precession"][0],
-                dtheta + result["precession"][1],
-                dgamma,
-                result["T"][0],  # phi component of ang. acc.
-                result["T"][1],  # theta component of ang. acc.
+                result["dq"][0],
+                result["dq"][1],
+                result["dq"][2],
+                result["dq"][3],
+                result["T"][0],  # x component of ang. acc.
+                result["T"][1],  # y component of ang. acc.
                 result["T"][2],  # gamma component of ang. acc.
             ]
         )

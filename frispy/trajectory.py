@@ -94,8 +94,7 @@ class Trajectory:
 
     def calculate_intermediate_quantities(
         self,
-        phi: float,
-        theta: float,
+        rotation: Rotation,
         velocity: np.ndarray,
         ang_velocity: np.ndarray,
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
@@ -107,7 +106,7 @@ class Trajectory:
         TODO
         """
         # Rotation matrix
-        R = self.rotation_matrix(phi, theta)
+        R = rotation.as_matrix()
         # Unit vectors
         zhat = R @ np.array([0, 0, 1])
         v_dot_zhat = velocity @ zhat
@@ -118,37 +117,10 @@ class Trajectory:
         # Angle of attack
         angle_of_attack = -np.arctan(v_dot_zhat / np.linalg.norm(v_in_plane))
 
-        # Angular velocity in lab coordinates
-        w_lab = R @ ang_velocity
-
-        # Angular velocity components along the unit vectors in the lab frame
-        U = np.array([xhat, yhat, zhat])
-        w = U @ w_lab
+        # wobble is only the in x and y axis relative to zhat
+        w = R @ np.array([ang_velocity[0], ang_velocity[1], 0])
         return {
             "unit_vectors": {"xhat": xhat, "yhat": yhat, "zhat": zhat},
             "angle_of_attack": angle_of_attack,
-            "rotation_matrix": R,
-            "w_lab": w_lab,
             "w": w,
         }
-
-    @staticmethod
-    def rotation_matrix(phi: float, theta: float) -> np.ndarray:
-        """
-        Compute the (partial) rotation matrix that transforms from the
-        lab frame to the disc frame. Note that because of azimuthal
-        symmetry, the azimuthal angle (`gamma`) is not used.
-        """
-
-        rot: Rotation = Rotation.from_euler('xy', [phi, theta])
-        matrix = rot.as_matrix()
-        #matrix = matrix.transpose()
-
-        # first rotate by phi (X/anhyzer/roll) then around theta (Y/nose down/pitch)
-        sp = np.sin(phi)
-        cp = np.cos(phi)
-        st = np.sin(theta)
-        ct = np.cos(theta)
-        result = np.array([[ct, sp * st, -st * cp], [0, cp, sp], [st, -sp * ct, cp * ct]])
-
-        return matrix
