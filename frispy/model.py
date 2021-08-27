@@ -43,7 +43,7 @@ class Model:
         self.coefficients["cavity_volume"] = (self.coefficients["rim_depth"]
                 * np.pi * (self.coefficients["diameter"] / 2 - self.coefficients["rim_width"]) ** 2
         )
-        pprint(2 * self.coefficients["cavity_volume"] / self.coefficients["height"] / self.coefficients["diameter"] * 180 / math.pi)
+        pprint(self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.coefficients["diameter"] * 180 / math.pi)
 
     def set_value(self, name: str, value: float) -> None:
         """
@@ -175,4 +175,9 @@ class Model:
         """
         PTy0 = self.get_value("PTy0")
         PTya = self.get_value("PTya")
-        return PTy0 + PTya * alpha
+        cavity_pitch_adjust = 0
+        angle_of_cavity = self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.coefficients["diameter"]
+        if alpha < angle_of_cavity and alpha > -angle_of_cavity:
+            cavity_pitch_adjust = -math.sin(math.pi * alpha / angle_of_cavity) * (PTya * angle_of_cavity / 4)
+        pitch = PTy0 + PTya * alpha
+        return pitch + cavity_pitch_adjust

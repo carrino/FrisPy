@@ -43,10 +43,11 @@ hz = rot / (2 * math.pi)
 #disc = Disc(wraith, {"vx": 30, "dgamma": -100, "vz": 10, "nose_up": 0, "hyzer": 40.5})
 
 # 8.9 m/s left at 3s      65m
-disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 5, "hyzer": 0})
+disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 5, "hyzer": 5})
 
 #10.47 m/s left at 3s   76m
-#disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 7})
+disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 10})
+disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 11})
 
 #12.1 m/s left at 3s   85m
 #disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": -5, "hyzer": 15})
@@ -58,22 +59,24 @@ disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(an
 #disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": -10, "hyzer": 25})
 
 #88m
-#disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": -12, "hyzer": 28})
+#disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": -12, "hyzer": 32})
 
 # gamma is spin LHBH/RHFH
 # phi is anhyzer (roll)
 # theta is nose down (pitch)
 
-#
-disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 7, "dphi": -1})
 
-#result = disc.compute_trajectory(3.0, None, **{"max_step": .0001, "rtol": 1e-6, "atol": 1e-9})
-result = disc.compute_trajectory(8)
+#disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 7})
+#disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 7, "dphi": rot/100})
+
+result = disc.compute_trajectory(8.0, None, **{"max_step": .1, "rtol": 1e-6, "atol": 1e-9})
+#result = disc.compute_trajectory(8)
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 
 plt.plot(x, y)
 plt.plot(x, z)
+plt.plot(x, result.vy)
 
 #plt.plot(t, result.dtheta)
 #plt.plot(t, result.dphi)
@@ -83,5 +86,8 @@ plt.plot(x, z)
 #plt.plot(t, y)
 #plt.plot(t, z)
 #plt.plot(t, result.vx)
+#plt.plot(t, result.vz)
+#plt.plot(t, result.dphi)
+#plt.plot(t, result.dtheta)
 
 plt.show()

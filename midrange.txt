@@ -1,0 +1,35 @@
+Bodies (1)
+Area	88078.674 mm^2
+Density	0.001 g / mm^3
+Mass	181.852 g
+Volume	1.910E+05 mm^3
+Physical Material	Polyethylene, High Density
+Appearance	Plastic - Translucent Matte (Gray)
+
+Bounding Box
+	Length 	 217.435 mm
+	Width 	 217.435 mm
+	Height 	 20.207 mm
+Center of Mass	-0.009 mm, 0.00 mm, 0.00 mm
+
+Moment of Inertia at Center of Mass   (g mm^2)
+	Ixx = 7.086E+05
+	Ixy = 6.928E-10
+	Ixz = -1.562E-10
+	Iyx = 6.928E-10
+	Iyy = 7.086E+05
+	Iyz = -2.597E-10
+	Izx = -1.562E-10
+	Izy = -2.597E-10
+	Izz = 1.408E+06
+
+Moment of Inertia at Origin   (g mm^2)
+	Ixx = 7.086E+05
+	Ixy = 6.927E-10
+	Ixz = 0.00
+	Iyx = 6.927E-10
+	Iyy = 7.086E+05
+	Iyz = -2.598E-10
+	Izx = 0.00
+	Izy = -2.598E-10
+	Izz = 1.408E+06
