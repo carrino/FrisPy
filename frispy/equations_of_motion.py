@@ -106,12 +106,12 @@ class EOM:
         wobble = res["w"]
         w = (roll + pitch_up + wobble) / (i_zz * wz)
 
-
         # https://www.euclideanspace.com/physics/kinematics/angularvelocity/QuaternionDifferentiation2.pdf
         wnorm = np.linalg.norm(w)
-        wquat: Rotation = Rotation.from_quat([w[0], w[1], w[2], 0]) * rotation
-        quat1 = rotation.as_quat()
-        quat2 = wquat.as_quat()
+        if math.isclose(0, wnorm):
+            wquat = Rotation.from_quat([0, 0, 0, 1])
+        else:
+            wquat = Rotation.from_quat([w[0], w[1], w[2], 0]) * rotation
 
         self.compute_wobble_precession(ang_velocity, torque, res)
         res["dq"] = wquat.as_quat() * wnorm / 2
