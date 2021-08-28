@@ -193,8 +193,6 @@ class Model:
             (float) 'y'-torque scale factor
         """
 
-        # TODO: take another look at pitching moment being linear and adjust for high angles of attack
-
         PTy0 = self.get_value("PTy0")
         PTya = self.get_value("PTya")
         cavity_pitch_adjust = 0
@@ -202,9 +200,13 @@ class Model:
         if alpha < angle_of_cavity and alpha > -angle_of_cavity:
             cavity_pitch_adjust = -math.sin(math.pi * alpha / angle_of_cavity) * (PTya * angle_of_cavity / 4)
         pitch = PTy0 + PTya * alpha
-        if alpha <= math.pi / 2:
+        if alpha <= 0.3:
             return pitch + cavity_pitch_adjust
-        elif alpha < 80 * math.pi / 180:
+        elif alpha <= math.pi / 2:
+            # pitch doubles after about .3 rad
+            return pitch + PTya * (alpha - 0.3)
+        elif alpha <= 80 * math.pi / 180:
+            # after stall the pitch drops
             return self.C_y(15 * math.pi / 180)
         else:
             # last 10 degrees of drop down to 0 at 90 deg
