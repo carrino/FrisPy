@@ -17,8 +17,8 @@ class Model:
 
     def __init__(self, **kwargs):
         self._coefficients: Dict[str, float] = {
-            "PL0": 0.33, # lift factor at 0 AoA
-            "PLa": 1.9, # lift factor linear with AoA
+            "PL0": 0.13, # lift factor at 0 AoA
+            "PLa": 2.7, # lift factor linear with AoA
             "PD0": 0.18, # drag at 0 lift
             "PDa": 0.69, # quadratic with AoA from zero lift point
             "PTxwx": -1.3e-2, # dampening factor for roll
@@ -27,7 +27,7 @@ class Model:
             "PTya": 0.43, # pitching moment from disc stability linear in AoA
             "PTywy": -1.4e-2, # dampening factor for pitch
             "PTzwz": -3.4e-5, # spin down
-            "alpha_0": -4 * np.pi / 180, # angle of zero lift
+            "alpha_0": -3 * np.pi / 180, # angle of zero lift
             "I_zz": 0.002352,
             "I_xx": 0.001219,
             "mass": 0.175,
@@ -43,6 +43,7 @@ class Model:
         self.coefficients["cavity_volume"] = (self.coefficients["rim_depth"]
                 * np.pi * (self.coefficients["diameter"] / 2 - self.coefficients["rim_width"]) ** 2
         )
+        self.coefficients["alpha_0"] = -self.coefficients["PL0"] / self.coefficients["PLa"]
         pprint(self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.coefficients["diameter"] * 180 / math.pi)
 
     def set_value(self, name: str, value: float) -> None:
@@ -144,7 +145,13 @@ class Model:
         PD0 = self.get_value("PD0")
         PDa = self.get_value("PDa")
         alpha_0 = self.get_value("alpha_0")
-        return PD0 + PDa * (alpha - alpha_0) ** 2
+        delta = (alpha - alpha_0)
+        if delta <= 0.4:
+            return PD0 + PDa * delta ** 2
+        else:
+            # handle drag dropping off after about .4 rad
+            quadratic_rise_rate = PDa * 0.4
+            return PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (delta - 0.4)
 
     def C_x(self, wz: float) -> float:
         """
