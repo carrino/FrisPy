@@ -130,7 +130,12 @@ class Model:
         """
         PL0 = self.get_value("PL0")
         PLa = self.get_value("PLa")
-        return PL0 + PLa * alpha
+        if alpha < math.pi / 2:
+            return PL0 + PLa * alpha
+        else:
+            # this is the case where the disc has stalled out
+            prestall = PL0 + PLa * (math.pi / 2)
+            return (math.pi - alpha) * prestall / 2
 
     def C_drag(self, alpha: float) -> float:
         """
@@ -146,12 +151,19 @@ class Model:
         PDa = self.get_value("PDa")
         alpha_0 = self.get_value("alpha_0")
         delta = (alpha - alpha_0)
+
+        # .4 rad is about where this stops being quadratic
+        quadratic_rise_rate = PDa * 0.4
         if delta <= 0.4:
             return PD0 + PDa * delta ** 2
-        else:
+        elif alpha < math.pi / 2:
             # handle drag dropping off after about .4 rad
-            quadratic_rise_rate = PDa * 0.4
             return PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (delta - 0.4)
+        else:
+            # handle stall case
+            prestall = PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (math.pi / 2 - 0.4)
+            poststall_rate = quadratic_rise_rate / 3
+            return prestall / 1.4 + poststall_rate * (alpha - math.pi / 2)
 
     def C_x(self, wz: float) -> float:
         """
@@ -180,6 +192,9 @@ class Model:
         Returns:
             (float) 'y'-torque scale factor
         """
+
+        # TODO: take another look at pitching moment being linear and adjust for high angles of attack
+
         PTy0 = self.get_value("PTy0")
         PTya = self.get_value("PTya")
         cavity_pitch_adjust = 0
@@ -187,4 +202,11 @@ class Model:
         if alpha < angle_of_cavity and alpha > -angle_of_cavity:
             cavity_pitch_adjust = -math.sin(math.pi * alpha / angle_of_cavity) * (PTya * angle_of_cavity / 4)
         pitch = PTy0 + PTya * alpha
-        return pitch + cavity_pitch_adjust
+        if alpha <= math.pi / 2:
+            return pitch + cavity_pitch_adjust
+        elif alpha < 80 * math.pi / 180:
+            return self.C_y(15 * math.pi / 180)
+        else:
+            # last 10 degrees of drop down to 0 at 90 deg
+            before_drop = self.C_y(15 * math.pi / 180)
+            return ((math.pi - alpha) * 180 / math.pi) * before_drop / 10

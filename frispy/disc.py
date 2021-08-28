@@ -45,7 +45,7 @@ class Disc:
 
     def compute_trajectory(
         self,
-        flight_time: float = 3.0,
+        flight_time: float = 7.0,
         return_scipy_results: bool = False,
         **solver_kwargs,
     ):
