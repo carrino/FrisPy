@@ -50,7 +50,7 @@ class Model:
         if "CD0" in self.coefficients:
             self.coefficients["PD0"] = self.coefficients["CD0"] - self.coefficients["PDa"] * alpha_0 * alpha_0
 
-        pprint(self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.coefficients["diameter"] * 180 / math.pi)
+        #pprint(self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.coefficients["diameter"] * 180 / math.pi)
 
     def set_value(self, name: str, value: float) -> None:
         """
