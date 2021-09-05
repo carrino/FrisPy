@@ -8,11 +8,10 @@ from frispy import Disc
 from frispy import Model
 from frispy import Discs
 
-model = Discs.wraith
+model = Discs.roc
 v = 20
-rot = v / -.211
-hz = rot / (2 * math.pi)
-nose_up = 15
+rot = -v / model.diameter
+nose_up = 10
 
 def distance(x):
     a, hyzer = x

@@ -2,8 +2,11 @@ from frispy.model import Model
 
 class Discs:
     @staticmethod
-    def from_flight_numbers():
+    def from_flight_numbers(speed: float, glide: float, turn: float, fade: float) -> Model:
+        # TODO: return model based on flight numbers
         return Model()
+
+    ultrastar: Model = Model()
 
     wraith: Model = Model(**{
         "PL0": 0.143,  # lift factor at 0 AoA (depends on glide)

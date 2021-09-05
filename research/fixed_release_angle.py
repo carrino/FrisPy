@@ -5,26 +5,27 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
 from frispy import Disc
-from frispy import Discs
 from frispy import Model
+from frispy import Discs
 
-model = Discs.roc
+model = Discs.wraith
 v = 20
 rot = -v / model.diameter
+nose_up = 0
+a = 10
 
 def distance(x):
-    a, nose_up, hyzer = x
-    d = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v,
-                     "nose_up": nose_up, "hyzer": hyzer})
+    hyzer = x[0]
+    d = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v, "nose_up": nose_up, "hyzer": hyzer})
     r = d.compute_trajectory(15.0, None, **{"max_step": .2})
     rx = r.x[-1]
     ry = r.y[-1]
     return -rx + ry / (rx + ry)
 
-x0 = [14, -4, 0]
+x0 = [0]
 res = minimize(distance, x0, method='powell', options={'xtol': 1e-8, 'disp': True})
 pprint(res)
-a, nose_up, hyzer = res.x
+hyzer = res.x[0]
 disc = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v,
                  "nose_up": nose_up, "hyzer": hyzer})
 
@@ -34,9 +35,5 @@ t, x, y, z = result.times, result.x, result.y, result.z
 
 plt.plot(x, y)
 plt.plot(x, z)
-
-#plt.plot(t, x)
-#plt.plot(t, y)
-#plt.plot(t, z)
 
 plt.show()
