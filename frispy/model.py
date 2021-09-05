@@ -25,9 +25,8 @@ class Model:
             "PTxwz": 0, # rolling moment related to spin precession?
             "PTy0": -8.2e-2, # pitching moment from disc stability at 0 AoA
             "PTya": 0.43, # pitching moment from disc stability linear in AoA
-            "PTywy": -1.4e-2, # dampening factor for pitch
+            "PTywy": -1.3e-2, # dampening factor for pitch
             "PTzwz": -3.4e-5, # spin down
-            "alpha_0": -3 * np.pi / 180, # angle of zero lift
             "I_zz": 0.002352,
             "I_xx": 0.001219,
             "mass": 0.175,
@@ -37,13 +36,20 @@ class Model:
             "height": 0.032,
         }
         for k, v in kwargs.items():
-            assert k in self.coefficients, f"invalid coefficient name {k}"
             self.coefficients[k] = v
+            if k == "CD0":
+                # handle the case where we only know the drag at AoA 0 and not lift = 0
+                continue
+            assert k in self.coefficients, f"invalid coefficient name {k}"
         self.coefficients["area"] = np.pi * (self.coefficients["diameter"] / 2) ** 2
         self.coefficients["cavity_volume"] = (self.coefficients["rim_depth"]
                 * np.pi * (self.coefficients["diameter"] / 2 - self.coefficients["rim_width"]) ** 2
         )
-        self.coefficients["alpha_0"] = -self.coefficients["PL0"] / self.coefficients["PLa"]
+        alpha_0 = -self.coefficients["PL0"] / self.coefficients["PLa"]
+        self.coefficients["alpha_0"] = alpha_0
+        if "CD0" in self.coefficients:
+            self.coefficients["PD0"] = self.coefficients["CD0"] - self.coefficients["PDa"] * alpha_0 * alpha_0
+
         pprint(self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.coefficients["diameter"] * 180 / math.pi)
 
     def set_value(self, name: str, value: float) -> None:
@@ -197,7 +203,7 @@ class Model:
         PTya = self.get_value("PTya")
         cavity_pitch_adjust = 0
         angle_of_cavity = self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.coefficients["diameter"]
-        if alpha < angle_of_cavity and alpha > -angle_of_cavity:
+        if angle_of_cavity > alpha > -angle_of_cavity:
             cavity_pitch_adjust = -math.sin(math.pi * alpha / angle_of_cavity) * (PTya * angle_of_cavity / 4)
         pitch = PTy0 + PTya * alpha
         if alpha <= 0.3:

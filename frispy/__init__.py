@@ -1,4 +1,5 @@
 from .disc import Disc
+from .discs import Discs
 from .environment import Environment
 from .equations_of_motion import EOM
 from .model import Model

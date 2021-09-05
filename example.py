@@ -1,77 +1,38 @@
 import math
+from pprint import pprint
 
 import matplotlib.pyplot as plt
+from scipy.optimize import minimize
 
 from frispy import Disc
+from frispy import Discs
 from frispy import Model
-import numpy as np
 
-# estimate drag from speed
-# estimate PL0 from glide
-# estimate PTy0 from turn
-# estimate PTya from turn and fade
 
-wraith = Model(**{
-    "PL0": 0.143,  # lift factor at 0 AoA (depends on glide)
-    "PLa": 2.29,  # lift factor linear with AoA (0.04 deg -> 2.29 rad) (constant)
-    "PD0": 0.055,  # drag at 0 lift  (based on disc speed)
-    # (.055 at speed 11, .061 speed 5, .067 speed 4, .083 speed 2)
-    "PDa": 1.67,  # quadratic with AoA from zero lift point (constant)
-    "PTxwz": 0,  # rolling moment related to spin precession?
-    "PTy0": -0.02,  # pitching moment from disc stability at 0 AoA (based on turn of disc, also based on cavity of disc)
-    # -0.02 turn -1, -0.007 turn 1, -0.033 turn -2, -0.015 turn 0  (per degree not per rad)
-    "PTya": 0.343,  # pitching moment from disc stability linear in AoA (0.006 / deg -> 0.343) (based on fade of disc)
-    # fade 0 0.002, fade 1 0.004, fade 3  0.006, fade 5 0.008  (per degree not per rad)
-    "PTywy": -1.3e-2,  # dampening factor for pitch (constant)
-    "PTxwx": -1.3e-2,  # dampening factor for roll (constant)
-    "PTzwz": -3.4e-5,  # spin down (constant)
-    "I_xx": 6.183E-04,
-    "I_zz": 1.231E-03,
-    "mass": 0.175,
-    "diameter": 0.211,
-    "rim_depth": 0.012,
-    "rim_width": 0.021,
-    "height": 0.014,
-})
-
-roc = Model(**{
-    "PL0": 0.053,  # lift factor at 0 AoA (depends on glide)
-    # roc 0.053 glide 4, buzzz .1 glide 4, wraith .143 glide 5, aviar .152 glide 3
-    "PLa": 2.35,  # lift factor linear with AoA (0.04 deg -> 2.29 rad) (constant)
-    "PD0": 0.067,  # drag at 0 lift  (based on disc speed)
-    # (.055 at speed 11, .061 speed 5, .067 speed 4, .083 speed 2)
-    "PDa": 1.67,  # quadratic with AoA from zero lift point (constant)
-    "PTxwz": 0,  # rolling moment related to spin precession?
-    "PTy0": -0.01,  # pitching from disc stability at 0 AoA (based on turn of disc, also based on cavity of disc)
-    # -0.02 turn -1, -0.007 turn 1, -0.033 turn -2, -0.015 turn 0  (per degree not per rad)
-    "PTya": 0.172,  # pitching moment from disc stability linear in AoA (0.003 / deg -> 0.172) (based on fade of disc)
-    # fade 0 0.002, fade 1 0.004, fade 3  0.006, fade 5 0.008  (per degree not per rad)
-    "PTywy": -1.3e-2,  # dampening factor for pitch (constant)
-    "PTxwx": -1.3e-2,  # dampening factor for roll (constant)
-    "PTzwz": -3.4e-5,  # spin down (constant)
-    "I_xx": 7.086E-04,
-    "I_zz": 1.408E-03,
-    "mass": 0.180,
-    "diameter": 0.217,
-    "rim_depth": 0.013,
-    "rim_width": 0.012,
-    "height": 0.020,
-})
-
-angle = 15 * math.pi / 180
-v = 25
+model = Discs.wraith
+v = 20
 rot = v / -.211
 hz = rot / (2 * math.pi)
+
+def distance(x):
+    a, nose_up, hyzer = x
+    d = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v, "nose_up": nose_up, "hyzer": hyzer})
+    r = d.compute_trajectory(10.0, None, **{"max_step": .1})
+    rx = r.x[-1]
+    ry = r.y[-1]
+    return -rx + ry / (rx + ry)
+
 #disc = Disc()
 #disc = Disc(wraith, {"vx": 30, "dgamma": -100, "vz": 10, "nose_up": -5, "hyzer": 52})
 #disc = Disc(wraith, {"vx": 30, "dgamma": -100, "vz": 10, "nose_up": 0, "hyzer": 40.5})
 
 # 8.9 m/s left at 3s      65m
-disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 5, "hyzer": 5})
+#disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 5, "hyzer": 5})
 
 #10.47 m/s left at 3s   76m
-disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 10})
-disc = Disc(roc, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 0})
+#disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 10})
+#disc = Disc(roc, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 0})
+
 
 #12.1 m/s left at 3s   85m
 #disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": -5, "hyzer": 15})
@@ -93,7 +54,14 @@ disc = Disc(roc, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle
 #disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 7})
 #disc = Disc(wraith, {"vx": math.cos(angle) * v, "dgamma": rot, "vz": math.sin(angle) * v, "nose_up": 0, "hyzer": 7, "dphi": rot/100})
 
-result = disc.compute_trajectory(8.0, None, **{"max_step": .1, "rtol": 1e-6, "atol": 1e-9})
+x0 = [14, -4, 0]
+#res = minimize(distance, x0, method='nelder-mead', options={'xatol': 1e-8, 'disp': True})
+res = minimize(distance, x0, method='powell', options={'xtol': 1e-8, 'disp': True})
+pprint(res)
+disc = Disc(model, {"vx": math.cos(res.x[0] * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(res.x[0] * math.pi / 180) * v, "nose_up": res.x[1], "hyzer": res.x[2]})
+
+#result = disc.compute_trajectory(8.0, None, **{"max_step": .1, "rtol": 1e-6, "atol": 1e-9})
+result = disc.compute_trajectory(8.0, None, **{"max_step": .1})
 #result = disc.compute_trajectory(8)
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
