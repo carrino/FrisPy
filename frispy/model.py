@@ -124,6 +124,19 @@ class Model:
     # scaling factors (the `C`s)                                        #
     #####################################################################
 
+    stall: float = math.pi / 4
+    neg_stall: float = -40 * math.pi / 180
+
+    @staticmethod
+    def normalizeAlpha(alpha: float) -> float:
+        if alpha > math.pi or alpha < -math.pi:
+            raise ValueError
+        if alpha > math.pi / 2:
+            return math.pi - alpha
+        if alpha < -math.pi / 2:
+            return -math.pi - alpha
+        return alpha
+
     def C_lift(self, alpha: float) -> float:
         """
         Lift force scale factor. Linear in the angle of attack (`alpha`).
@@ -134,14 +147,19 @@ class Model:
         Returns:
             (float) lift force scale factor
         """
+        alpha = Model.normalizeAlpha(alpha)
+
         PL0 = self.get_value("PL0")
         PLa = self.get_value("PLa")
-        if alpha < math.pi / 2:
+        if alpha < Model.neg_stall:
+            stall_lift = PL0 + PLa * Model.neg_stall
+            return stall_lift + (alpha - Model.neg_stall) / (Model.neg_stall + math.pi / 2) * stall_lift
+        elif alpha < Model.stall:
             return PL0 + PLa * alpha
         else:
-            # this is the case where the disc has stalled out
-            prestall = PL0 + PLa * (math.pi / 2)
-            return (math.pi - alpha) * prestall / 2
+            # this is the case where the disc has stalled out at about 45 degrees
+            prestall = PL0 + PLa * (math.pi / 4)
+            return (math.pi / 2 - alpha) * prestall / 2
 
     def C_drag(self, alpha: float) -> float:
         """
@@ -153,6 +171,8 @@ class Model:
         Returns:
             (float) drag force scale factor
         """
+        alpha = Model.normalizeAlpha(alpha)
+
         PD0 = self.get_value("PD0")
         PDa = self.get_value("PDa")
         alpha_0 = self.get_value("alpha_0")
@@ -162,11 +182,11 @@ class Model:
         quadratic_rise_rate = PDa * 0.4
         if delta <= 0.4:
             return PD0 + PDa * delta ** 2
-        elif alpha < math.pi / 2:
+        elif alpha < math.pi / 4:
             # handle drag dropping off after about .4 rad
             return PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (delta - 0.4)
         else:
-            # handle stall case
+            # handle stall case at about 45 degrees
             prestall = PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (math.pi / 2 - 0.4)
             poststall_rate = quadratic_rise_rate / 3
             return prestall / 1.4 + poststall_rate * (alpha - math.pi / 2)
@@ -198,6 +218,8 @@ class Model:
         Returns:
             (float) 'y'-torque scale factor
         """
+
+        alpha = Model.normalizeAlpha(alpha)
 
         PTy0 = self.get_value("PTy0")
         PTya = self.get_value("PTya")
