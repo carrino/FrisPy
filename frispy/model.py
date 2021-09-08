@@ -193,14 +193,17 @@ class Model:
 
         # negative AoA drag is based on glide
         # for ultrastar it is about 3/4 of the positive drag coefficient
-        neg_PDa = PDa * 3 / 4
+        glide_coefficeint = 3 / 4
+        neg_PDa = PDa * glide_coefficeint
 
         # .4 rad is about where this stops being quadratic
         quadratic_rise_rate = PDa * 0.4
         if alpha < Model.neg_stall:
-            stall_alpha = Model.neg_stall - alpha_0
-            prestall = PD0 + neg_PDa * stall_alpha ** 2
-            return prestall
+            range = Model.neg_stall + math.pi / 2
+            stall_alpha = alpha_0 - Model.neg_stall
+            prestall = (PD0 + neg_PDa * stall_alpha ** 2) / (1.5 * glide_coefficeint)
+            full_nose_down = self.C_drag(glide_coefficeint * 40 * math.pi / 180) - prestall
+            return prestall - (alpha - Model.neg_stall) / range * full_nose_down
         elif delta < 0.0:
             return PD0 + neg_PDa * delta ** 2
         elif delta <= 0.4:
@@ -211,12 +214,11 @@ class Model:
             return PD0 + PDa * delta ** 2
         else:
             # handle stall case at about 45 degrees
-            #prestall = PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (math.pi / 2 - 0.4)
-            #poststall_rate = quadratic_rise_rate / 3
-            #return prestall / 1.4 + poststall_rate * (alpha - math.pi / 2)
+            range = math.pi / 2 - Model.stall
             stall_alpha = Model.stall - alpha_0
-            prestall = PD0 + PDa * stall_alpha ** 2
-            return prestall / 1.5
+            prestall = (PD0 + PDa * stall_alpha ** 2) / 1.5
+            full_nose_up = self.C_drag(40 * math.pi / 180) - prestall
+            return prestall + (alpha - Model.stall) / range * full_nose_up
 
 
     def C_x(self, wz: float) -> float:
