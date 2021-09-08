@@ -17,16 +17,20 @@ class Model:
 
     def __init__(self, **kwargs):
         self._coefficients: Dict[str, float] = {
-            "PL0": 0.13, # lift factor at 0 AoA
+            "PL0": 0.2, # lift factor at 0 AoA
             "PLa": 2.7, # lift factor linear with AoA
-            "PD0": 0.18, # drag at 0 lift
-            "PDa": 0.69, # quadratic with AoA from zero lift point
+
+            "PD0": 0.08, # drag at 0 lift
+            "PDa": 1.9, # quadratic with AoA from zero lift point
+
+            "PTy0": -0.02, # pitching moment from disc stability at 0 AoA
+            "PTya": 0.13, # pitching moment from disc stability linear in AoA
+
             "PTxwx": -1.3e-2, # dampening factor for roll
-            "PTxwz": 0, # rolling moment related to spin precession?
-            "PTy0": -8.2e-2, # pitching moment from disc stability at 0 AoA
-            "PTya": 0.43, # pitching moment from disc stability linear in AoA
             "PTywy": -1.3e-2, # dampening factor for pitch
             "PTzwz": -3.4e-5, # spin down
+
+            "PTxwz": 0, # rolling moment related to spin precession?
             "I_zz": 0.002352,
             "I_xx": 0.001219,
             "mass": 0.175,
@@ -151,14 +155,23 @@ class Model:
 
         PL0 = self.get_value("PL0")
         PLa = self.get_value("PLa")
-        if alpha < Model.neg_stall:
-            stall_lift = PL0 + PLa * Model.neg_stall
-            return stall_lift + (alpha - Model.neg_stall) / (Model.neg_stall + math.pi / 2) * stall_lift
+        if alpha < 0:
+            # a x^2 + b x + c
+            b = PLa
+            c = PL0
+            a = -b / 2 / Model.neg_stall
+            if alpha < Model.neg_stall:
+                alpha_0 = self.get_value("alpha_0")
+                scale = (alpha_0 - Model.neg_stall) / (Model.neg_stall + math.pi / 2)
+                x = Model.neg_stall - (Model.neg_stall - alpha) * scale
+                return a * x * x + b * x + c
+            else:
+                return a * alpha * alpha + b * alpha + c
         elif alpha < Model.stall:
             return PL0 + PLa * alpha
         else:
             # this is the case where the disc has stalled out at about 45 degrees
-            prestall = PL0 + PLa * (math.pi / 4)
+            prestall = PL0 + PLa * Model.stall
             return (math.pi / 2 - alpha) * prestall / 2
 
     def C_drag(self, alpha: float) -> float:
@@ -176,20 +189,35 @@ class Model:
         PD0 = self.get_value("PD0")
         PDa = self.get_value("PDa")
         alpha_0 = self.get_value("alpha_0")
-        delta = (alpha - alpha_0)
+        delta = alpha - alpha_0
+
+        # negative AoA drag is based on glide
+        # for ultrastar it is about 3/4 of the positive drag coefficient
+        neg_PDa = PDa * 3 / 4
 
         # .4 rad is about where this stops being quadratic
         quadratic_rise_rate = PDa * 0.4
-        if delta <= 0.4:
+        if alpha < Model.neg_stall:
+            stall_alpha = Model.neg_stall - alpha_0
+            prestall = PD0 + neg_PDa * stall_alpha ** 2
+            return prestall
+        elif delta < 0.0:
+            return PD0 + neg_PDa * delta ** 2
+        elif delta <= 0.4:
             return PD0 + PDa * delta ** 2
-        elif alpha < math.pi / 4:
+        elif alpha <= Model.stall:
             # handle drag dropping off after about .4 rad
-            return PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (delta - 0.4)
+            #return PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (delta - 0.4)
+            return PD0 + PDa * delta ** 2
         else:
             # handle stall case at about 45 degrees
-            prestall = PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (math.pi / 2 - 0.4)
-            poststall_rate = quadratic_rise_rate / 3
-            return prestall / 1.4 + poststall_rate * (alpha - math.pi / 2)
+            #prestall = PD0 + quadratic_rise_rate * 0.4 + quadratic_rise_rate * (math.pi / 2 - 0.4)
+            #poststall_rate = quadratic_rise_rate / 3
+            #return prestall / 1.4 + poststall_rate * (alpha - math.pi / 2)
+            stall_alpha = Model.stall - alpha_0
+            prestall = PD0 + PDa * stall_alpha ** 2
+            return prestall / 1.5
+
 
     def C_x(self, wz: float) -> float:
         """
