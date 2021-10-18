@@ -1,5 +1,7 @@
 from frispy.model import Model
 
+# constants come from wind tunnel testing done by
+# check out "DYNAMICS AND PERFORMANCE OF FLYING DISCS" page 111
 class Discs:
     @staticmethod
     def from_flight_numbers(speed: float, glide: float, turn: float, fade: float) -> Model:

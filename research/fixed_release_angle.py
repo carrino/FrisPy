@@ -9,7 +9,7 @@ from frispy import Model
 from frispy import Discs
 
 model = Discs.wraith
-v = 20
+v = 25
 rot = -v / model.diameter
 nose_up = 0
 a = 10
@@ -19,7 +19,7 @@ def distance(x):
     d = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v, "nose_up": nose_up, "hyzer": hyzer})
     r = d.compute_trajectory(15.0, None, **{"max_step": .2})
     rx = r.x[-1]
-    ry = r.y[-1]
+    ry = abs(r.y[-1])
     return -rx + ry / (rx + ry)
 
 x0 = [0]

@@ -1,4 +1,5 @@
 import math
+import numpy as np
 from pprint import pprint
 from typing import Dict, List, Optional
 
@@ -102,6 +103,35 @@ class Disc:
         fpr.times = result.t
         for i, key in enumerate(self.ordered_coordinate_names):
             setattr(fpr, key, result.y[i])
+        n = len(result.t)
+        rot = [None] * n
+        phi = [None] * n
+        theta = [None] * n
+        gamma = [None] * n
+        v = [None] * n
+        aoa = [None] * n
+        fpr.rot = rot
+        fpr.gamma = gamma
+        fpr.phi = phi
+        fpr.theta = theta
+        fpr.v = v
+        fpr.aoa = aoa
+        gamma_sum = 0
+        last_t = 0
+        for i, t in enumerate(result.t):
+            gamma_sum += fpr.dgamma[i] * (t - last_t)
+            last_t = t
+            gamma[i] = gamma_sum
+            r: Rotation = Rotation.from_quat([fpr.qx[i], fpr.qy[i], fpr.qz[i], fpr.qw[i]])
+            rot[i] = r
+            euler = r.as_euler('zyx')
+            phi[i] = euler[2]
+            theta[i] = euler[1]
+            velocity = np.array([fpr.vx[i], fpr.vy[i], fpr.vz[i]])
+            v[i] = velocity
+            trajectory = Trajectory.calculate_intermediate_quantities(r, velocity, [0, 0])
+            aoa[i] = trajectory["angle_of_attack"]
+
         self.current_results = fpr
 
         # If specified, return a results object
@@ -144,7 +174,7 @@ class Disc:
 
         anhyzer = 0
         if initial_conditions is not None and "hyzer" in initial_conditions:
-            anhyzer -= initial_conditions["hyzer"] * math.pi / 180
+            anhyzer = initial_conditions["hyzer"] * math.pi / 180 * math.copysign(1, initial_conditions["dgamma"])
 
         pitch = math.atan2(-base_ICs["vz"], base_ICs["vx"])
         if initial_conditions is not None and "nose_up" in initial_conditions:
@@ -220,8 +250,14 @@ class FrisPyResults:
         "qy",
         "qz",
         "qw",
-        "dphi",
-        "dtheta",
-        "dgamma",
+        "dphi", # phi is rotation around X axis
+        "dtheta", # theta is rotation around Y
+        "dgamma", # gamma is rotation around Z
+        "phi",
+        "theta",
+        "gamma",
+        "rot",
         "times",
+        "v", # velocity vector [vx, vy, vz]
+        "aoa",  # angle of attack
     ]

@@ -8,8 +8,8 @@ from frispy import Disc
 from frispy import Discs
 from frispy import Model
 
-model = Discs.roc
-v = 20
+model = Discs.wraith
+v = 25 # 25 m/s is 56 mph
 rot = -v / model.diameter
 
 def distance(x):
@@ -18,7 +18,7 @@ def distance(x):
                      "nose_up": nose_up, "hyzer": hyzer})
     r = d.compute_trajectory(15.0, None, **{"max_step": .2})
     rx = r.x[-1]
-    ry = r.y[-1]
+    ry = abs(r.y[-1])
     return -rx + ry / (rx + ry)
 
 x0 = [14, -4, 0]

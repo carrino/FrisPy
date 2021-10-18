@@ -17,7 +17,7 @@ class Model:
 
     def __init__(self, **kwargs):
         self._coefficients: Dict[str, float] = {
-            "PL0": 0.2, # lift factor at 0 AoA
+            "PL0": 0.13, # lift factor at 0 AoA
             "PLa": 2.7, # lift factor linear with AoA
 
             "PD0": 0.08, # drag at 0 lift
@@ -221,23 +221,24 @@ class Model:
             return prestall + (alpha - Model.stall) / range * full_nose_up
 
 
-    def C_x(self, wz: float) -> float:
+    def C_x(self, aoa: float, v_norm: float, wz: float) -> float:
         """
-        'x'-torque scale factor. Linearly additive in the 'z' angular velocity
-        (`w_z`) and the 'x' angular velocity (`w_x`).
+        Rolling moment.  Normally zero except at high advance rates.
+        Check out FrisbeeAerodynamics.pdf page 145
 
         Args:
-            wx (float): 'x' angular velocity in radians per second
-            wz (float): 'z' angular velocity in radians per second
+            aoa: angle of attack
+            v_norm: velocity relative to the wind
+            wz:
 
-        Returns:
-            (float) 'x'-torque scale factor
+        Returns: rolling moment
         """
-        PTxwz = self.get_value("PTxwz")
-        return PTxwz * wz
+        return 0
 
     def C_y(self, alpha: float) -> float:
         """
+        pitching moment.  pitching causes turn and fade due to gyroscopic precession.
+
         'y'-torque scale factor. Linearly additive in the 'y' angular velocity
         (`w_y`) and the angle of attack (`alpha`).
 
@@ -254,13 +255,13 @@ class Model:
         PTy0 = self.get_value("PTy0")
         PTya = self.get_value("PTya")
         cavity_pitch_adjust = 0
-        angle_of_cavity = self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.coefficients["diameter"]
+        angle_of_cavity = self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.diameter
         if angle_of_cavity > alpha > -angle_of_cavity:
             cavity_pitch_adjust = -math.sin(math.pi * alpha / angle_of_cavity) * (PTya * angle_of_cavity / 4)
         pitch = PTy0 + PTya * alpha
         if alpha <= 0.3:
             return pitch + cavity_pitch_adjust
-        elif alpha <= math.pi / 2:
+        elif alpha <= Model.stall:
             # pitch doubles after about .3 rad
             return pitch + PTya * (alpha - 0.3)
         elif alpha <= 80 * math.pi / 180:
@@ -269,4 +270,40 @@ class Model:
         else:
             # last 10 degrees of drop down to 0 at 90 deg
             before_drop = self.C_y(15 * math.pi / 180)
-            return ((math.pi - alpha) * 180 / math.pi) * before_drop / 10
+            return ((math.pi / 2 - alpha) * 180 / math.pi) * before_drop / 10
+
+    def C_side(self, aoa, v_norm, wz):
+        """
+        Side force caused by magnus forces at high advance rates.
+        https://en.wikipedia.org/wiki/Magnus_effect
+
+        advance ratio (AdvR) = wz * r / v
+
+        # Magnus force for a cylinder of length L is approximately:
+        F/L = p * v * 2 * pi * r^2 * wz
+
+        L in this context is approximately the rim height
+
+        side force coefficient is multiplied by the force magnitude which is
+        .5 * p * v^2 * disc Area = .5 * p * pi * r^2 * v^2
+
+        F = f_mag * rim_height * 4 * wz / v
+
+        Args:
+            aoa: angle of attack
+            v_norm: velocity.norm()
+            wz: rate of rotation in rads for the z axis
+            f_amp: force amplitude
+
+        Returns:
+
+        """
+        if aoa < Model.neg_stall or aoa > Model.stall:
+            return 0
+        if v_norm < 0.1:
+            return 0
+        #rim_depth = self.coefficients["rim_depth"]
+        #return 4 * rim_depth * wz / v_norm
+        rim_width = self.coefficients["rim_width"]
+        advR = (self.diameter - rim_width) / 2 * wz / v_norm
+        return math.copysign(0.1, wz) * advR * advR

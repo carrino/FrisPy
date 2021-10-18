@@ -92,8 +92,8 @@ class Trajectory:
         """
         return self._current_coordinates[3:6]
 
+    @staticmethod
     def calculate_intermediate_quantities(
-        self,
         rotation: Rotation,
         velocity: np.ndarray,
         ang_velocity: np.ndarray,

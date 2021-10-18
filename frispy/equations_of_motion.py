@@ -52,7 +52,8 @@ class EOM:
         """
         res = self.trajectory.calculate_intermediate_quantities(rotation, velocity, ang_velocity)
         aoa = res["angle_of_attack"]
-        vhat = velocity / np.linalg.norm(velocity)
+        v_norm = np.linalg.norm(velocity)
+        vhat = velocity / v_norm
         force_amplitude = (
             0.5
             * self.environment.air_density
@@ -65,6 +66,11 @@ class EOM:
             * force_amplitude
             * np.cross(vhat, res["unit_vectors"]["yhat"])
         )
+        res["F_side"] = (
+                self.model.C_side(aoa, v_norm, ang_velocity[2])
+                * force_amplitude
+                * res["unit_vectors"]["yhat"]
+        )
         res["F_drag"] = self.model.C_drag(aoa) * force_amplitude * (-vhat)
         # Compute gravitational force
         res["F_grav"] = (
@@ -72,7 +78,7 @@ class EOM:
             * self.environment.g
             * self.environment.grav_vector
         )
-        res["F_total"] = res["F_lift"] + res["F_drag"] + res["F_grav"]
+        res["F_total"] = res["F_lift"] + res["F_drag"] + res["F_grav"] + res["F_side"]
         res["Acc"] = res["F_total"] / self.model.mass
         return res
 
@@ -97,24 +103,24 @@ class EOM:
         i_zz = self.model.I_zz
         torque = res["torque_amplitude"]
         wz = ang_velocity[2]
-
+        v_norm = np.linalg.norm(velocity)
 
         # Handle pitch and roll as precession around Z and not a change to angular velocity.
         roll = self.model.C_y(aoa) * res["torque_amplitude"] * res["unit_vectors"]["xhat"]
-        pitch_up = self.model.C_x(wz) * res["torque_amplitude"] * res["unit_vectors"]["yhat"]
+        pitch_up = self.model.C_x(aoa, v_norm, wz) * res["torque_amplitude"] * res["unit_vectors"]["yhat"]
 
         wobble = res["w"]
         w = (roll + pitch_up + wobble) / (i_zz * wz)
 
         # https://www.euclideanspace.com/physics/kinematics/angularvelocity/QuaternionDifferentiation2.pdf
-        wnorm = np.linalg.norm(w)
-        if math.isclose(0, wnorm):
+        w_norm = np.linalg.norm(w)
+        if math.isclose(0, w_norm):
             wquat = Rotation.from_quat([0, 0, 0, 1])
         else:
             wquat = Rotation.from_quat([w[0], w[1], w[2], 0]) * rotation
 
         self.compute_wobble_precession(ang_velocity, torque, res)
-        res["dq"] = wquat.as_quat() * wnorm / 2
+        res["dq"] = wquat.as_quat() * w_norm / 2
         return res
 
     def compute_wobble_precession(
