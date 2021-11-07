@@ -106,11 +106,12 @@ class EOM:
         v_norm = np.linalg.norm(velocity)
 
         # Handle pitch and roll as precession around Z and not a change to angular velocity.
-        roll = self.model.C_y(aoa) * res["torque_amplitude"] * res["unit_vectors"]["xhat"]
-        pitch_up = self.model.C_x(aoa, v_norm, wz) * res["torque_amplitude"] * res["unit_vectors"]["yhat"]
+        roll = self.model.C_y(aoa) * torque * res["unit_vectors"]["xhat"]
+        pitch_up = self.model.C_x(aoa, v_norm, wz) * torque * res["unit_vectors"]["yhat"]
 
         wobble = res["w"]
-        w = (roll + pitch_up + wobble) / (i_zz * wz)
+        w = (roll + pitch_up) / (i_zz * wz)
+        w += wobble
 
         # https://www.euclideanspace.com/physics/kinematics/angularvelocity/QuaternionDifferentiation2.pdf
         w_norm = np.linalg.norm(w)
@@ -139,7 +140,7 @@ class EOM:
 
         # Handle wobble by precession of angular velocity
         delta_moment = self.model.I_zz - self.model.I_xx
-        acc += delta_moment / i_xx * wz * np.array([-wy, wx, 0])
+        acc += delta_moment / i_xx * 2*wz * np.array([-wy, wx, 0])
 
         res["T"] = acc
 

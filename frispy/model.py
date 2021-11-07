@@ -22,12 +22,13 @@ class Model:
 
             "PD0": 0.08, # drag at 0 lift
             "PDa": 1.9, # quadratic with AoA from zero lift point
+            # "PDa": 1.67, # golf discs have less drag per angle of attack;
 
             "PTy0": -0.02, # pitching moment from disc stability at 0 AoA
             "PTya": 0.13, # pitching moment from disc stability linear in AoA
 
-            "PTxwx": -1.3e-2, # dampening factor for roll
-            "PTywy": -1.3e-2, # dampening factor for pitch
+            "PTxwx": -1.3e-3, # dampening factor for roll
+            "PTywy": -1.3e-3, # dampening factor for pitch
             "PTzwz": -3.4e-5, # spin down
 
             "PTxwz": 0, # rolling moment related to spin precession?

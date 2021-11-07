@@ -13,10 +13,11 @@ v = 20
 rot = -v / model.diameter
 nose_up = 0
 hyzer = 0
-uphill = 11.89938406
-dphi = 2
-#dphi = 0
-hyzer -= 1 / 4
+uphill = 0
+rotation_factor = 1 / 10
+dtheta = -rot * rotation_factor
+dphi = 0
+hyzer = math.atan(rotation_factor) / 2 * 180 / math.pi
 
 # gamma is spin LHBH/RHFH (spin around Z axis)
 # phi is anhyzer (roll around X axis)
@@ -24,10 +25,10 @@ hyzer -= 1 / 4
 
 x0 = [10, 0]
 disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(uphill * math.pi / 180) * v,
-                    "nose_up": nose_up, "hyzer": hyzer, "dphi": dphi})
+                    "nose_up": nose_up, "hyzer": hyzer, "dphi": dphi, "dtheta": dtheta})
                     #"nose_up": nose_up, "hyzer": hyzer})
 
-result = disc.compute_trajectory(8, None, **{"max_step": .2, "atol": 1e-9})
+result = disc.compute_trajectory(1, None, **{"max_step": .1, "atol": 1e-9})
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 
@@ -36,12 +37,15 @@ t, x, y, z = result.times, result.x, result.y, result.z
 
 #plt.plot(t, result.dphi)
 #plt.plot(t, result.dtheta)
+#plt.plot(t, result.dgamma)
 
 #plt.plot(t, y)
 #plt.plot(t, x)
 
-plt.plot(t, result.phi)
-plt.plot(t, result.theta)
+#plt.plot(t, result.phi)
+plt.plot(t, [i * 180 / math.pi for i in result.phi])
+plt.plot(t, [i * 180 / math.pi for i in result.theta])
+#plt.plot(t, [math.sin(i) for i in result.gamma])
 
 pprint(x[-1])
 
