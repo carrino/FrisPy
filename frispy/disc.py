@@ -12,6 +12,36 @@ from frispy.model import Model
 from frispy.trajectory import Trajectory
 
 
+class FrisPyResults:
+    """
+    An object to hold the results of computing a trajectory
+    """
+
+    __slots__ = [
+        "x",
+        "y",
+        "z",
+        "vx",
+        "vy",
+        "vz",
+        "qx",
+        "qy",
+        "qz",
+        "qw",
+        "dphi", # phi is rotation around X axis
+        "dtheta", # theta is rotation around Y
+        "dgamma", # gamma is rotation around Z
+        "phi",
+        "theta",
+        "gamma",
+        "rot",
+        "pos",
+        "times",
+        "v", # velocity vector [vx, vy, vz]
+        "aoa",  # angle of attack
+    ]
+
+
 class Disc:
     """Flying spinning disc object. The disc object contains only physical
     parameters of the disc and environment that it exists (e.g. gravitational
@@ -47,9 +77,8 @@ class Disc:
     def compute_trajectory(
         self,
         flight_time: float = 7.0,
-        return_scipy_results: bool = False,
         **solver_kwargs,
-    ):
+    ) -> FrisPyResults:
         """Call the differential equation solver to compute
         the trajectory. The kinematic variables and timesteps are saved
         as the `current_trajectory` attribute, which is a dictionary,
@@ -70,9 +99,6 @@ class Disc:
         Args:
           flight_time (float, optional): time in seconds that the simulation
             will run over. Default is 3 seconds.
-          return_scipy_results (bool, optional): Default is `False`. Flag to
-            indicate whether to return the full results object of the solver.
-            See the scipy docs for more information.
           solver_args (Dict[str, Any]): extra arguments to pass
             to the :meth:`scipy.integrate.solver_ivp` method used to solve
             the differential equation.
@@ -92,11 +118,6 @@ class Disc:
             **solver_kwargs,
         )
         pprint(result.message)
-        if solver_kwargs.get("dense_output", False):
-            return result
-
-        # Set the current coordinates to the last point
-        self.current_coordinates = result.y[:, -1]
 
         # Create the results object
         fpr = FrisPyResults
@@ -104,12 +125,14 @@ class Disc:
         for i, key in enumerate(self.ordered_coordinate_names):
             setattr(fpr, key, result.y[i])
         n = len(result.t)
+        pos = [None] * n
         rot = [None] * n
         phi = [None] * n
         theta = [None] * n
         gamma = [None] * n
         v = [None] * n
         aoa = [None] * n
+        fpr.pos = pos
         fpr.rot = rot
         fpr.gamma = gamma
         fpr.phi = phi
@@ -128,17 +151,13 @@ class Disc:
             phi[i] = euler[2]
             theta[i] = euler[1]
             velocity = np.array([fpr.vx[i], fpr.vy[i], fpr.vz[i]])
+            position = np.array([fpr.x[i], fpr.y[i], fpr.z[i]])
             v[i] = velocity
+            pos[i] = position
             trajectory = Trajectory.calculate_intermediate_quantities(r, velocity, [0, 0])
             aoa[i] = trajectory["angle_of_attack"]
 
-        self.current_results = fpr
-
-        # If specified, return a results object
-        if return_scipy_results:
-            return fpr, result
-        else:
-            return fpr
+        return fpr
 
     def reset_initial_conditions(self) -> None:
         """
@@ -146,8 +165,6 @@ class Disc:
         clear the trajectory.
         """
         self.initial_conditions = self.default_initial_conditions
-        self.current_coordinates = self.initial_conditions.copy()
-        self.current_results = None
         return
 
     def set_default_initial_conditions(
@@ -234,30 +251,3 @@ class Disc:
         return self._eom.trajectory
 
 
-class FrisPyResults:
-    """
-    An object to hold the results of computing a trajectory
-    """
-
-    __slots__ = [
-        "x",
-        "y",
-        "z",
-        "vx",
-        "vy",
-        "vz",
-        "qx",
-        "qy",
-        "qz",
-        "qw",
-        "dphi", # phi is rotation around X axis
-        "dtheta", # theta is rotation around Y
-        "dgamma", # gamma is rotation around Z
-        "phi",
-        "theta",
-        "gamma",
-        "rot",
-        "times",
-        "v", # velocity vector [vx, vy, vz]
-        "aoa",  # angle of attack
-    ]

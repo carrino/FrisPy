@@ -3,5 +3,7 @@ README.md
 *.pyc
 *.pyo
 *.pyd
+.*.swp
+.*.swo
 __pycache__
 .pytest_cache
