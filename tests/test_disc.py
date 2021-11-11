@@ -120,7 +120,7 @@ class TestDisc(TestCase):
     def test_compute_trajectory_t_span_vs_flight_time(self):
         d = Disc()
         result = d.compute_trajectory(flight_time=3)
-        result2 = d.compute_trajectory(t_span=(0, 3), flight_time=None)
+        result2 = d.compute_trajectory(flight_time=None, t_span=(0, 3))
         assert all(result.times == result2.times)
         for x in d.ordered_coordinate_names:
             assert len(getattr(result, x)) == len(getattr(result2, x))

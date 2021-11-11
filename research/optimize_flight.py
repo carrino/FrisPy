@@ -16,7 +16,7 @@ def distance(x):
     a, nose_up, hyzer = x
     d = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v,
                      "nose_up": nose_up, "hyzer": hyzer})
-    r = d.compute_trajectory(10.0, None, **{"max_step": .2})
+    r = d.compute_trajectory(10.0, **{"max_step": .2})
     rx = r.x[-1]
     return -rx
 
@@ -27,7 +27,7 @@ a, nose_up, hyzer = res.x
 disc = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v,
                  "nose_up": nose_up, "hyzer": hyzer})
 
-result = disc.compute_trajectory(10.0, None, **{"max_step": .2})
+result = disc.compute_trajectory(10.0, **{"max_step": .2})
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 

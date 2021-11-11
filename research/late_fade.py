@@ -23,7 +23,7 @@ uphill = 6
 disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(uphill * math.pi / 180) * v,
                     "nose_up": nose_up, "hyzer": hyzer})
 
-result = disc.compute_trajectory(5, None, **{"max_step": .2, "atol": 1e-9})
+result = disc.compute_trajectory(5, **{"max_step": .2, "atol": 1e-9})
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 

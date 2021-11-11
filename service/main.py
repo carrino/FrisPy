@@ -3,19 +3,24 @@ import os
 
 from flask import Flask, request, jsonify
 
-from frispy import Disc, Model
+from frispy import Disc, Model, Discs
 
 app = Flask(__name__)
 
 @app.route('/api/flight_path', methods=['POST'])
 def flight_path():
     content = request.json
-    model = Model()
-    a, nose_up, hyzer = res.x
-    disc = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v,
+    model = Discs.from_string(content.disc_name)
+    v = content.v
+    rot = content.rot
+    a = content.uphill_degrees * math.pi / 180
+    hyzer = content.hyzer_degrees
+    nose_up = content.nose_up_degrees
+    disc = Disc(model, {"vx": math.cos(a) * v, "dgamma": -rot, "vz": math.sin(a) * v,
                         "nose_up": nose_up, "hyzer": hyzer})
 
-    result = disc.compute_trajectory(15.0, None, **{"max_step": .2})
+    result = disc.compute_trajectory(15.0, **{"max_step": .2})
+    return jsonify(result)
 
 
 @app.route("/")

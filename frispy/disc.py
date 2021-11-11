@@ -74,11 +74,7 @@ class Disc:
         self.set_default_initial_conditions(initial_conditions)
         self.reset_initial_conditions()
 
-    def compute_trajectory(
-        self,
-        flight_time: float = 7.0,
-        **solver_kwargs,
-    ) -> FrisPyResults:
+    def compute_trajectory(self, flight_time: float = 7.0, **solver_kwargs) -> FrisPyResults:
         """Call the differential equation solver to compute
         the trajectory. The kinematic variables and timesteps are saved
         as the `current_trajectory` attribute, which is a dictionary,

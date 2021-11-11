@@ -28,23 +28,23 @@ disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "
                     "nose_up": nose_up, "hyzer": hyzer, "dphi": dphi, "dtheta": dtheta})
                     #"nose_up": nose_up, "hyzer": hyzer})
 
-result = disc.compute_trajectory(1, None, **{"max_step": .1, "atol": 1e-9})
+result = disc.compute_trajectory(1, **{"max_step": .1, "atol": 1e-9})
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 
 #plt.plot(x, y)
 #plt.plot(x, z)
 
-#plt.plot(t, result.dphi)
-#plt.plot(t, result.dtheta)
+plt.plot(t, result.dphi)
+plt.plot(t, result.dtheta)
 #plt.plot(t, result.dgamma)
 
 #plt.plot(t, y)
 #plt.plot(t, x)
 
 #plt.plot(t, result.phi)
-plt.plot(t, [i * 180 / math.pi for i in result.phi])
-plt.plot(t, [i * 180 / math.pi for i in result.theta])
+#plt.plot(t, [i * 180 / math.pi for i in result.phi])
+#plt.plot(t, [i * 180 / math.pi for i in result.theta])
 #plt.plot(t, [math.sin(i) for i in result.gamma])
 
 pprint(x[-1])

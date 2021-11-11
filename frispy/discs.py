@@ -6,9 +6,32 @@ from frispy.model import Model
 # check out "DYNAMICS AND PERFORMANCE OF FLYING DISCS" page 111
 class Discs:
     @staticmethod
+    def from_string(name: str) -> Model:
+        if name == "wraith":
+            return Discs.wraith
+        elif name == "roc":
+            return Discs.roc
+        elif name == "flick":
+            return Discs.flick
+        elif name == "stable_wraith":
+            return Discs.stable_wraith
+        else:
+            raise ValueError("name not found")
+
+    @staticmethod
     def from_flight_numbers(speed: float, glide: float, turn: float, fade: float) -> Model:
         # TODO: return model based on flight numbers
         return Model()
+
+    # condor I_xx is 4-5% higher than 1/2 I_zz
+    # I suspect most discs are somewhere around 3-5% off (maybe less for drivers).
+    # However, for a known mold we may be able to assume I_xx/I_zz is constant
+    # and can be used for calibration.
+    # for condor the rotation frequency is 13/12 times the wobble frequency.
+    # While in flight accel.x average is about -2.5 m/s^2
+    # This corresponds to the rotational spindown
+    # accel.x is a sine wave +/- 5 m/s^2  This is equal to the drag on the disc
+
 
     ultrastar: Model = Model()
 
