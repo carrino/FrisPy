@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 from frispy import Disc
 from frispy import Discs
 
-model = Discs.roc
-v = 20
-rot = -v / model.diameter
+model = Discs.destroyer
+v = 25
+rot = -126
 nose_up = 0
-hyzer = 0
+hyzer = 20
 uphill = 10
 dphi = 0
 

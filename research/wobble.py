@@ -8,14 +8,15 @@ from frispy import Disc
 from frispy import Model
 from frispy import Discs
 
-model = Discs.roc
-v = 20
-rot = -v / model.diameter
+model = Discs.destroyer
+v = 25
+rot = -126
 nose_up = 0
 hyzer = 0
 uphill = 0
-rotation_factor = 1 / 10
-dtheta = -rot * rotation_factor
+rotation_factor = 1 / 5
+#dtheta = -rot * rotation_factor
+dtheta = 21.5
 dphi = 0
 hyzer = math.atan(rotation_factor) / 2 * 180 / math.pi
 
