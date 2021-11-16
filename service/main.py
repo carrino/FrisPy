@@ -22,7 +22,7 @@ def flight_path():
                         "nose_up": nose_up, "hyzer": hyzer})
 
     result = disc.compute_trajectory(15.0, **{"max_step": .2})
-    return json.dump(result)
+    return json.dumps(result)
 
 
 @app.route("/")
