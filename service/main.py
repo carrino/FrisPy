@@ -1,3 +1,4 @@
+import json
 import math
 import os
 from pprint import pprint
@@ -21,8 +22,7 @@ def flight_path():
                         "nose_up": nose_up, "hyzer": hyzer})
 
     result = disc.compute_trajectory(15.0, **{"max_step": .2})
-    pprint(result)
-    return result
+    return json.dump(result)
 
 
 @app.route("/")
