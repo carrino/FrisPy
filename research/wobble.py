@@ -52,6 +52,7 @@ plt.plot(t, result.dtheta)
 pprint(x[-1])
 #res = {
 #    'p': result.pos,
+#    't': [i.tolist() for i in result.times],
 #    'v': [i.tolist() for i in result.v],
 #    'phi': result.phi, # anhyzer
 #    'theta': result.theta, # nose down

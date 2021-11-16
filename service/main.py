@@ -24,6 +24,7 @@ def flight_path():
     result = disc.compute_trajectory(15.0, **{"max_step": .2})
     res = {
         'p': result.pos,
+        't': [i.tolist() for i in result.times],
         'v': [i.tolist() for i in result.v],
         'phi': result.phi,  # anhyzer
         'theta': result.theta,  # nose down
