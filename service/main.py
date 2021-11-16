@@ -21,7 +21,7 @@ def flight_path():
     disc = Disc(model, {"vx": math.cos(a) * v, "dgamma": -rot, "vz": math.sin(a) * v,
                         "nose_up": nose_up, "hyzer": hyzer})
 
-    result = disc.compute_trajectory(15.0, **{"max_step": .2})
+    result = disc.compute_trajectory(20, **{"max_step": .2, "rtol": 5e-4, "atol": 1e-7})
     res = {
         'p': result.pos,
         't': [i.tolist() for i in result.times],

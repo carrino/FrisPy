@@ -171,10 +171,6 @@ class EOM:
           derivatives of all coordinates
         """
         x, y, z, vx, vy, vz, qx, qy, qz, qw, dphi, dtheta, dgamma = coordinates
-        # If the disk hit the ground, then stop calculations
-        if z <= 0:
-            return coordinates * 0
-
         velocity = np.array([vx, vy, vz])
         rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
         rot_array = rotation.as_quat()

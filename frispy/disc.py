@@ -107,10 +107,13 @@ class Disc:
         else:
             t_span = (0, flight_time)
 
+        def hit_ground(t, y): return y[2]
+        hit_ground.terminal = True
         result = solve_ivp(
             fun=self.eom.compute_derivatives,
             t_span=t_span,
             y0=self.initial_conditions_as_ordered_list,
+            events=hit_ground,
             **solver_kwargs,
         )
         pprint(result.message)
