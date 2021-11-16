@@ -1,6 +1,7 @@
 numpy
 scipy
 matplotlib
+json
 
 # used for docker service
 Flask==2.0.1
