@@ -147,7 +147,7 @@ class Disc:
             phi[i] = euler[2]
             theta[i] = euler[1]
             velocity = np.array([fpr.vx[i], fpr.vy[i], fpr.vz[i]])
-            position = np.array([fpr.x[i], fpr.y[i], fpr.z[i]])
+            position = [fpr.x[i], fpr.y[i], fpr.z[i]]
             v[i] = velocity
             pos[i] = position
             trajectory = Trajectory.calculate_intermediate_quantities(r, velocity, [0, 0])

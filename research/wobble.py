@@ -1,3 +1,4 @@
+import json
 import math
 from pprint import pprint
 
@@ -49,5 +50,18 @@ plt.plot(t, result.dtheta)
 #plt.plot(t, [math.sin(i) for i in result.gamma])
 
 pprint(x[-1])
+#res = {
+#    'p': result.pos,
+#    'v': [i.tolist() for i in result.v],
+#    'phi': result.phi, # anhyzer
+#    'theta': result.theta, # nose down
+#    'qx': result.qx.tolist(),
+#    'qy': result.qy.tolist(),
+#    'qz': result.qz.tolist(),
+#    'qw': result.qw.tolist(),
+#}
+#
+#dump = json.dumps(res)
+#pprint(dump)
 
 plt.show()
