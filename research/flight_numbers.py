@@ -10,13 +10,13 @@ import numpy as np
 
 # drag based on speed. This is the minimum drag at 0 lift.  aka PD0
 def drag_from_speed(speed: float) -> float:
-    return .089 - 0.012 * math.sqrt(speed)
+    return .089 - 0.01355 * math.sqrt(speed)
 
 # ultrastar is basically a speed 0 disc
 # other speeds are defined relative to the ultrastar
 # ultrastar, aviar, roc, buzzz, storm, quarter k, wraith, flick
 speed = [0.1, 2, 4, 5, 6, 9, 11, 12]
-drag = [.085, .072, .066, .058, .053, .059, .048, .058]
+drag = [.085, .072, .066, .058, .053, .059, .048, .042]
 #plt.plot([math.sqrt(s) for s in speed], drag)  # decently linear
 #plt.plot([math.sqrt(s) for s in speed], [drag_from_speed(x) for x in speed])  # decently linear
 
@@ -32,8 +32,8 @@ def cm0_from_turn(t: float) -> float:
 # +1.5 turn would be a disc with 0 pitching moment at 0 AoA
 turn = [-2, -1, -1, 0, 0, 1]
 cm0 = [-0.033, -0.026, -0.020, -0.018, -0.015, -0.007]
-#plt.plot(turn, cm0)
-#plt.plot(turn, [cm0_from_turn(x) for x in turn])
+plt.plot(turn, cm0)
+plt.plot(turn, [cm0_from_turn(x) for x in turn])
 
 def maxGlideRangeForSpeed(speed: float) -> float:
     if speed < 3:
@@ -65,7 +65,7 @@ def dcl_da_from_speed(speed: float) -> float:
 # ultrastar, aviar, roc, buzzz, storm, quarter k, wraith, flick
 dcl_da = [.051, .044, .043, .041, .045, .039, .04, 0.038]
 dcl_da = [i * 180 / math.pi for i in dcl_da]
-plt.plot([math.sqrt(s) for s in speed], dcl_da)
-plt.plot([math.sqrt(s) for s in speed], [dcl_da_from_speed(i) for i in speed])
+#plt.plot([math.sqrt(s) for s in speed], dcl_da)
+#plt.plot([math.sqrt(s) for s in speed], [dcl_da_from_speed(i) for i in speed])
 
 plt.show()

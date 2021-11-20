@@ -252,6 +252,7 @@ class Model:
 
         alpha = Model.normalizeAlpha(alpha)
 
+        # TODO: figure out why sideways motion happens with 0 pty0
         PTy0 = self.get_value("PTy0")
         PTya = self.get_value("PTya")
         cavity_pitch_adjust = 0

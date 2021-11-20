@@ -116,7 +116,6 @@ class Disc:
             events=hit_ground,
             **solver_kwargs,
         )
-        pprint(result.message)
 
         # Create the results object
         fpr = FrisPyResults
@@ -192,11 +191,12 @@ class Disc:
         if initial_conditions is not None and "hyzer" in initial_conditions:
             anhyzer = initial_conditions["hyzer"] * math.pi / 180 * math.copysign(1, initial_conditions["dgamma"])
 
-        pitch = math.atan2(-base_ICs["vz"], base_ICs["vx"])
+        downhill = math.atan2(-base_ICs["vz"], base_ICs["vx"])
+        nose_down = 0;
         if initial_conditions is not None and "nose_up" in initial_conditions:
-            pitch -= initial_conditions["nose_up"] * math.pi / 180
+            nose_down -= initial_conditions["nose_up"] * math.pi / 180
 
-        rotation = Rotation.from_euler("xy", [anhyzer, pitch])
+        rotation = Rotation.from_euler("YXY", [downhill, anhyzer, nose_down])
         quat = rotation.as_quat()
         base_ICs["qx"] = quat[0]
         base_ICs["qy"] = quat[1]

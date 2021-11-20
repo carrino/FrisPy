@@ -1,3 +1,5 @@
+#  Copyright (c) 2021 John Carrino
+
 import math
 from pprint import pprint
 
@@ -10,7 +12,7 @@ from frispy import Discs
 model = Discs.destroyer
 mph_to_mps = 0.44704
 v = 70 * mph_to_mps
-rot = -v / model.diameter * 1.3
+rot = -v / model.diameter * 1.2
 
 def distance(x):
     a, nose_up, hyzer = x
@@ -20,10 +22,8 @@ def distance(x):
     rx = r.x[-1]
     return -rx
 
-x0 = [10, -4, 20]
-res = minimize(distance, x0, method='powell', options={'xtol': 1e-8, 'disp': True})
-pprint(res)
-a, nose_up, hyzer = res.x
+x0 = [6, -3, 25]
+a, nose_up, hyzer = x0
 disc = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v,
                  "nose_up": nose_up, "hyzer": hyzer})
 
@@ -39,5 +39,6 @@ plt.plot(x, z)
 #plt.plot(t, z)
 
 pprint(x[-1] * 3.28084) # feet
+pprint(Discs.destroyer.get_value("PD0"))
 
 plt.show()

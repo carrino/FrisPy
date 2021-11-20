@@ -14,14 +14,18 @@ def flight_path():
     content = request.json
     model = Discs.from_string(content['disc_name'])
     v = content['v']
-    rot = content['rot']
+    spin = content['spin']
+    wx = content['spin']
     a = content['uphill_degrees'] * math.pi / 180
     hyzer = content['hyzer_degrees']
     nose_up = content['nose_up_degrees']
-    disc = Disc(model, {"vx": math.cos(a) * v, "dgamma": -rot, "vz": math.sin(a) * v,
-                        "nose_up": nose_up, "hyzer": hyzer})
+    disc = Disc(model, {"vx": math.cos(a) * v,
+                        "dgamma": spin,
+                        "vz": math.sin(a) * v,
+                        "nose_up": nose_up,
+                        "hyzer": hyzer})
 
-    result = disc.compute_trajectory(20, **{"max_step": .2, "rtol": 5e-4, "atol": 1e-7})
+    result = disc.compute_trajectory(30, **{"max_step": .2, "rtol": 5e-4, "atol": 1e-7})
     res = {
         'p': result.pos,
         't': [i.tolist() for i in result.times],
@@ -38,8 +42,7 @@ def flight_path():
 
 @app.route("/")
 def hello_world():
-    name = os.environ.get("NAME", "World")
-    return "Hello auto {}!".format(name)
+    return "Frispy service!"
 
 
 if __name__ == "__main__":
