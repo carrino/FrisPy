@@ -15,6 +15,8 @@ class Discs:
             return Discs.flick
         elif name == "stable_wraith":
             return Discs.stable_wraith
+        elif name == "destroyer":
+            return Discs.destroyer
         else:
             raise ValueError("name not found")
 
