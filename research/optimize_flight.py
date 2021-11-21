@@ -10,7 +10,7 @@ from frispy import Discs
 model = Discs.destroyer
 mph_to_mps = 0.44704
 v = 70 * mph_to_mps
-rot = -v / model.diameter * 1.3
+rot = -v / model.diameter
 
 def distance(x):
     a, nose_up, hyzer = x

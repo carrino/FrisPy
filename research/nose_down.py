@@ -13,7 +13,7 @@ from frispy import Discs
 mph_to_mps = 0.44704
 
 model = Discs.destroyer
-v = 46 * mph_to_mps
+v = 70 * mph_to_mps
 rot = -v / model.diameter
 nose_up = 0
 hyzer = 0

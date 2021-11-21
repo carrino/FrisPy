@@ -1,13 +1,12 @@
-import json
 import math
 import os
-from pprint import pprint
 
-from flask import Flask, request, jsonify
+from flask import Flask, request
 
-from frispy import Disc, Model, Discs
+from frispy import Disc, Discs
 
 app = Flask(__name__)
+
 
 @app.route('/api/flight_path', methods=['POST'])
 def flight_path():
@@ -15,12 +14,21 @@ def flight_path():
     model = Discs.from_string(content['disc_name'])
     v = content['v']
     spin = content['spin']
-    wx = content['spin']
+    wx = 0
+    if "wx" in content:
+        wx = content["wx"]
+
+    wy = 0
+    if "wy" in content:
+        wy = content["wy"]
+
     a = content['uphill_degrees'] * math.pi / 180
     hyzer = content['hyzer_degrees']
     nose_up = content['nose_up_degrees']
     disc = Disc(model, {"vx": math.cos(a) * v,
                         "dgamma": spin,
+                        "dphi": wx,
+                        "dtheta": wy,
                         "vz": math.sin(a) * v,
                         "nose_up": nose_up,
                         "hyzer": hyzer})
@@ -30,8 +38,6 @@ def flight_path():
         'p': result.pos,
         't': [i.tolist() for i in result.times],
         'v': [i.tolist() for i in result.v],
-        'phi': result.phi,  # anhyzer
-        'theta': result.theta,  # nose down
         'qx': result.qx.tolist(),
         'qy': result.qy.tolist(),
         'qz': result.qz.tolist(),

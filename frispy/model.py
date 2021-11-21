@@ -303,8 +303,13 @@ class Model:
             return 0
         if v_norm < 0.1:
             return 0
-        #rim_depth = self.coefficients["rim_depth"]
-        #return 4 * rim_depth * wz / v_norm
+        rim_depth = self.coefficients["rim_depth"]
         rim_width = self.coefficients["rim_width"]
-        advR = (self.diameter - rim_width) / 2 * wz / v_norm
-        return math.copysign(0.1, wz) * advR * advR
+        inner_diam = (self.diameter - rim_width)
+        adjust = inner_diam / self.diameter * inner_diam / self.diameter
+        #return 4 * rim_depth * wz * adjust / v_norm
+
+        #advR = (self.diameter - rim_width) / 2 * wz / v_norm
+        #return math.copysign(0.1, wz) * advR * advR
+
+        return 0
