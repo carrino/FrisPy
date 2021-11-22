@@ -21,6 +21,9 @@ def flight_path():
     wy = 0
     if "wy" in content:
         wy = content["wy"]
+    z = 1
+    if "z" in content:
+        z = content["z"]
 
     a = content['uphill_degrees'] * math.pi / 180
     hyzer = content['hyzer_degrees']
@@ -30,6 +33,7 @@ def flight_path():
                         "dphi": wx,
                         "dtheta": wy,
                         "vz": math.sin(a) * v,
+                        "z": z,
                         "nose_up": nose_up,
                         "hyzer": hyzer})
 
