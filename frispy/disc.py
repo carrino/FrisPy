@@ -142,6 +142,8 @@ class Disc:
             last_t = t
             gamma[i] = gamma_sum
             r: Rotation = Rotation.from_quat([fpr.qx[i], fpr.qy[i], fpr.qz[i], fpr.qw[i]])
+            gamma_rot = Rotation.from_euler('Z', gamma_sum)
+            r = r * gamma_rot
             rot[i] = r
             euler = r.as_euler('zyx')
             phi[i] = euler[2]

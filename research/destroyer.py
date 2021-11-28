@@ -2,10 +2,7 @@
 
 import math
 from pprint import pprint
-
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize
-
 from frispy import Disc
 from frispy import Discs
 
@@ -32,6 +29,5 @@ plt.plot(x, z)
 #plt.plot(t, z)
 
 pprint(x[-1] * 3.28084) # feet
-pprint(Discs.destroyer.get_value("PD0"))
 
 plt.show()

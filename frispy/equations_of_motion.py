@@ -111,10 +111,10 @@ class EOM:
         if math.isclose(0, w_norm):
             wquat = Rotation.from_quat([0, 0, 0, 1])
         else:
-            wquat = Rotation.from_quat([w[0], w[1], w[2], 0]) * rotation
+            wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
+        res["dq"] = wquat.as_quat() * w_norm / 2
 
         self.compute_wobble_precession(ang_velocity, torque, res)
-        res["dq"] = wquat.as_quat() * w_norm / 2
         return res
 
     def compute_wobble_precession(
@@ -133,7 +133,7 @@ class EOM:
 
         # Handle wobble by precession of angular velocity
         delta_moment = self.model.I_zz - self.model.I_xx
-        acc += delta_moment / i_xx * 2*wz * np.array([-wy, wx, 0])
+        acc += delta_moment / i_xx * 2 * wz * np.array([-wy, wx, 0])
 
         res["T"] = acc
 
@@ -161,8 +161,7 @@ class EOM:
         x, y, z, vx, vy, vz, qx, qy, qz, qw, dphi, dtheta, dgamma = coordinates
         velocity = np.array([vx, vy, vz])
         rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
-        rot_array = rotation.as_quat()
-        # angular velocity is defined relative to z after rotaiton
+        # angular velocity is defined relative to the disc
         ang_velocity = np.array([dphi, dtheta, dgamma])
         result = self.compute_forces(rotation, velocity, ang_velocity)
         result = self.compute_torques(velocity, ang_velocity, rotation, result)
