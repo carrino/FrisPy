@@ -5,7 +5,6 @@ import math
 
 from frispy.environment import Environment
 from frispy.model import Model
-from frispy.trajectory import Trajectory
 from scipy.spatial.transform import Rotation
 
 class EOM:
@@ -20,11 +19,9 @@ class EOM:
         self,
         environment: Environment = Environment(),
         model: Model = Model(),
-        trajectory: Trajectory = Trajectory(),
     ):
         self._environment = environment
         self._model = model
-        self._trajectory = trajectory
 
     @property
     def environment(self) -> Environment:
@@ -33,10 +30,6 @@ class EOM:
     @property
     def model(self) -> Model:
         return self._model
-
-    @property
-    def trajectory(self) -> Trajectory:
-        return self._trajectory
 
     def compute_forces(
         self,
@@ -50,7 +43,7 @@ class EOM:
         Args:
         TODO
         """
-        res = self.trajectory.calculate_intermediate_quantities(rotation, velocity, ang_velocity)
+        res = EOM.calculate_intermediate_quantities(rotation, velocity, ang_velocity)
         aoa = res["angle_of_attack"]
         v_norm = np.linalg.norm(velocity)
         vhat = velocity / v_norm
@@ -144,11 +137,6 @@ class EOM:
 
         res["T"] = acc
 
-    @staticmethod
-    def expand_quaternion(qx: float, qy: float, qz: float, qw: float) -> Rotation:
-        vector = np.array([qx, qy, qz, qw])
-        return Rotation.from_quat(vector)
-
     def compute_derivatives(
         self, time: float, coordinates: np.ndarray
     ) -> np.ndarray:
@@ -196,3 +184,42 @@ class EOM:
             ]
         )
         return derivatives
+
+    @staticmethod
+    def expand_quaternion(qx: float, qy: float, qz: float, qw: float) -> Rotation:
+        vector = np.array([qx, qy, qz, qw])
+        return Rotation.from_quat(vector)
+
+
+    @staticmethod
+    def calculate_intermediate_quantities(
+            rotation: Rotation,
+            velocity: np.ndarray,
+            ang_velocity: np.ndarray,
+    ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
+        """
+        Compute intermediate quantities on the way to computing the time
+        derivatives of the kinematic variables.
+
+        Args:
+        TODO
+        """
+        # Rotation matrix
+        R = rotation.as_matrix()
+        # Unit vectors
+        zhat = R @ np.array([0, 0, 1])
+        v_dot_zhat = velocity @ zhat
+        v_in_plane = velocity - zhat * v_dot_zhat
+        xhat = v_in_plane / np.linalg.norm(v_in_plane)
+        yhat = np.cross(zhat, xhat)
+
+        # Angle of attack
+        angle_of_attack = -np.arctan(v_dot_zhat / np.linalg.norm(v_in_plane))
+
+        # wobble is only the in x and y axis relative to zhat
+        w = R @ np.array([ang_velocity[0], ang_velocity[1], 0])
+        return {
+            "unit_vectors": {"xhat": xhat, "yhat": yhat, "zhat": zhat},
+            "angle_of_attack": angle_of_attack,
+            "w": w,
+        }

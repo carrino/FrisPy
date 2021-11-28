@@ -1,16 +1,8 @@
 #  Copyright (c) 2021 John Carrino
 import struct
-from typing import Dict, Union
 from dataclasses import dataclass
-
 import numpy as np
-import math
-
-from frispy.environment import Environment
-from frispy.model import Model
-from frispy.trajectory import Trajectory
 from scipy.spatial.transform import Rotation
-
 
 @dataclass
 class ThrowData:

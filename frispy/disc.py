@@ -1,6 +1,5 @@
 import math
 import numpy as np
-from pprint import pprint
 from typing import Dict, List, Optional
 
 from scipy.integrate import solve_ivp
@@ -9,7 +8,6 @@ from scipy.spatial.transform import Rotation
 from frispy.environment import Environment
 from frispy.equations_of_motion import EOM
 from frispy.model import Model
-from frispy.trajectory import Trajectory
 
 
 class FrisPyResults:
@@ -28,8 +26,8 @@ class FrisPyResults:
         "qy",
         "qz",
         "qw",
-        "dphi", # phi is rotation around X axis
-        "dtheta", # theta is rotation around Y
+        "dphi", # phi is rotation around X axis aka anhyzer
+        "dtheta", # theta is rotation around Y aka nose_down
         "dgamma", # gamma is rotation around Z
         "phi",
         "theta",
@@ -152,8 +150,8 @@ class Disc:
             position = [fpr.x[i], fpr.y[i], fpr.z[i]]
             v[i] = velocity
             pos[i] = position
-            trajectory = Trajectory.calculate_intermediate_quantities(r, velocity, [0, 0])
-            aoa[i] = trajectory["angle_of_attack"]
+            angles = EOM.calculate_intermediate_quantities(r, velocity, [0, 0])
+            aoa[i] = angles["angle_of_attack"]
 
         return fpr
 
@@ -172,7 +170,7 @@ class Disc:
             "x": 0,
             "y": 0,
             "z": 1.0,
-            "vx": 10.0,
+            "vx": 25.0,
             "vy": 0,
             "vz": 0,
             "qx": 0,
@@ -181,7 +179,7 @@ class Disc:
             "qw": 1,
             "dphi": 0,
             "dtheta": 0,
-            "dgamma": 62.0, # spin, positive is RHBH or clockwise from above
+            "dgamma": -120.0, # spin, negative is RHBH or clockwise from above
         }
         for i in base_ICs:
             if initial_conditions is not None and i in initial_conditions:
@@ -244,9 +242,3 @@ class Disc:
     def model(self) -> Model:
         print(self._model)
         return self._model
-
-    @property
-    def trajectory_object(self) -> Trajectory:
-        return self._eom.trajectory
-
-
