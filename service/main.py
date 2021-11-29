@@ -50,7 +50,7 @@ def flight_path():
         'qy': result.qy.tolist(),
         'qz': result.qz.tolist(),
         'qw': result.qw.tolist(),
-        'gamma': result.gamma.tolist(),
+        'gamma': result.gamma,
     }
     return res
 
