@@ -25,6 +25,10 @@ def flight_path():
     if "z" in content:
         z = content["z"]
 
+    gamma = 0
+    if "gamma" in content:
+        gamma = content["gamma"]
+
     a = content['uphill_degrees'] * math.pi / 180
     hyzer = content['hyzer_degrees']
     nose_up = content['nose_up_degrees']
@@ -35,7 +39,9 @@ def flight_path():
                         "vz": math.sin(a) * v,
                         "z": z,
                         "nose_up": nose_up,
-                        "hyzer": hyzer})
+                        "hyzer": hyzer,
+                        "gamma": gamma,
+                        })
 
     hz = abs(spin) / math.pi / 2
     # In order to get a smooth output for the rotation of the disc
