@@ -8,7 +8,7 @@ from frispy import Discs
 
 model = Discs.destroyer
 v = 25
-rot = -126
+rot = -126 # rad/s
 nose_up = 0
 hyzer = 20
 uphill = 10
@@ -27,6 +27,8 @@ t, x, y, z = result.times, result.x, result.y, result.z
 
 pprint(rot)
 
+# spindown is 5 rad/s^2
+# 5 * 0.01778m = 0.0889 m/s^2
 plt.plot(t, result.dgamma)
 
 pprint(result.dgamma[-1])

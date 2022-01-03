@@ -40,7 +40,6 @@ def flight_path():
                         "z": z,
                         "nose_up": nose_up,
                         "hyzer": hyzer,
-                        "gamma": gamma,
                         })
 
     hz = abs(spin) / math.pi / 2
@@ -56,7 +55,7 @@ def flight_path():
         'qy': result.qy.tolist(),
         'qz': result.qz.tolist(),
         'qw': result.qw.tolist(),
-        'gamma': result.gamma,
+        'gamma': [i + gamma for i in result.gamma],
     }
     return res
 
