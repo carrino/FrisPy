@@ -9,19 +9,12 @@ from frispy import Disc
 from frispy import Model
 from frispy import Discs
 
-#model = Discs.stable_wraith
-#v = 65 * 0.44704 # 65 mph
-#rot = -20.4 * 2 * math.pi # 20.4 Hz in rad/s
-#nose_up = 0.7
-#hyzer = 18
-#uphill = 6.4
-
-model = Discs.wraith
-v = 58 * 0.44704 # 58 mph
-rot = -20.3 * 2 * math.pi # 20.4 Hz in rad/s
-nose_up = 0.9
-hyzer = -1.4
-uphill = 10
+model = Discs.destroyer
+v = 54 * 0.44704 # 58 mph
+rot = -1277 / 60 * 2 * math.pi # 21 Hz in rad/s
+nose_up = 1
+hyzer = 8
+uphill = 3
 
 # gamma is spin LHBH/RHFH (spin around Z axis)
 # phi is anhyzer (roll around X axis)
