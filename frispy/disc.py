@@ -197,6 +197,10 @@ class Disc:
             nose_down -= initial_conditions["nose_up"] * math.pi / 180
 
         rotation = Rotation.from_euler("YXY", [downhill, anhyzer, nose_down])
+
+        if initial_conditions is not None and "gamma" in initial_conditions:
+            gamma = initial_conditions["gamma"]
+            rotation = rotation * Rotation.from_euler("Z", gamma)
         quat = rotation.as_quat()
         base_ICs["qx"] = quat[0]
         base_ICs["qy"] = quat[1]

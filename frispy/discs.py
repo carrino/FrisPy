@@ -138,7 +138,7 @@ class Discs:
         # (.055 at speed 11, .061 speed 5, .067 speed 4, .083 speed 2)
         "PDa": 1.67,  # quadratic with AoA from zero lift point (constant)
         "PTxwz": 0,  # rolling moment related to spin precession?
-        "PTy0": 0.0, # pitching moment from disc stability at 0 AoA (based on turn of disc, also based on cavity of disc)
+        "PTy0": -0.0034, # pitching moment from disc stability at 0 AoA (based on turn of disc, also based on cavity of disc)
         # -0.02 turn -1, -0.007 turn 1, -0.033 turn -2, -0.015 turn 0  (per degree not per rad)
         "PTya": 0.3, # pitching moment from disc stability linear in AoA (0.006 / deg -> 0.343 / rad) (based on fade of disc)
         # fade 0 0.002, fade 1 0.004, fade 3  0.006, fade 5 0.008  (per degree not per rad)

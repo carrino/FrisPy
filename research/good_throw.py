@@ -10,22 +10,34 @@ from frispy import Model
 from frispy import Discs
 
 model = Discs.destroyer
-v = 54 * 0.44704 # 58 mph
+v = 54.5 * 0.44704
 rot = -1277 / 60 * 2 * math.pi # 21 Hz in rad/s
-nose_up = 1
-hyzer = 8
-uphill = 3
+nose_up = 1.15
+hyzer = 7.8
+uphill = 2.8
+wx = -13.2
+wy = -8.88
+gamma = -1.135
+#gamma = 0
+
+#degrees = math.atan2(wx/2, rot)
+#degrees = math.atan2(rot, wx/2)
+degrees = math.atan(wx/rot/2) * 180 / math.pi
 
 # gamma is spin LHBH/RHFH (spin around Z axis)
 # phi is anhyzer (roll around X axis)
 # theta is nose down (pitch around Y axis)
 
 disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(uphill * math.pi / 180) * v,
-                    "nose_up": nose_up, "hyzer": hyzer})
+                    "nose_up": nose_up, "hyzer": hyzer, "dphi": wx, "dtheta": wy, "gamma": gamma})
 
-#result = disc.compute_trajectory(15)
-#result = disc.compute_trajectory(15, **{"max_step": .5, "rtol": 1e-6, "atol": 1e-9})
-result = disc.compute_trajectory(15, **{"max_step": .2, "rtol": 1e-5, "atol": 1e-8})
+hz = abs(rot) / math.pi / 2
+# In order to get a smooth output for the rotation of the disc
+# we need to have enough samples to spin in the correct direction
+max_step = 0.45 / hz
+result = disc.compute_trajectory(30, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
+#result = disc.compute_trajectory(15, **{"max_step": .2, "rtol": 1e-5, "atol": 1e-8})
+
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 
@@ -41,10 +53,11 @@ t, x, y, z = result.times, result.x, result.y, result.z
 #plt.plot(t, result.z)
 
 
-plt.plot(result.x, result.y)
-plt.plot(result.x, result.z)
+plt.plot(t, result.y)
+plt.plot(t, result.z)
+#plt.plot(t, result.dtheta)
 #plt.plot(t, result.z)
-pprint(len(result.x))
+#pprint(len(result.x))
 
 pprint(result.x[-1] * 3.28084) # convert m to feet
 plt.show()
