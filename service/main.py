@@ -7,7 +7,11 @@ from frispy import Disc, Discs
 
 app = Flask(__name__)
 
-
+# this method assumes the disc velocity is in the X direction.
+# This library uses Z as up so Y points to the left (if X is straight ahead)
+# This does not handle rotation of the disc in the resulting quaternion
+# but a gamma param is sent to rotate after.
+# units are all in SI units. m, m/s, rad/s, unless noted in the name.
 @app.route('/api/flight_path', methods=['POST'])
 def flight_path():
     content = request.json
@@ -39,8 +43,8 @@ def flight_path():
                         "vz": math.sin(a) * v,
                         "z": z,
                         "nose_up": nose_up,
-                        "hyzer": hyzer,
-                        })
+                        "hyzer": hyzer
+    })
 
     hz = abs(spin) / math.pi / 2
     # In order to get a smooth output for the rotation of the disc
@@ -55,7 +59,7 @@ def flight_path():
         'qy': result.qy.tolist(),
         'qz': result.qz.tolist(),
         'qw': result.qw.tolist(),
-        'gamma': [i for i in result.gamma],
+        'gamma': [i + gamma for i in result.gamma],
     }
     return res
 
