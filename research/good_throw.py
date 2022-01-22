@@ -10,15 +10,21 @@ from frispy import Model
 from frispy import Discs
 
 model = Discs.destroyer
-v = 54.5 * 0.44704
-rot = -1277 / 60 * 2 * math.pi # 21 Hz in rad/s
+#v = 54.5 * 0.44704
+v = 24.36
+rot = -133.7
 nose_up = 1.15
 hyzer = 7.8
-uphill = 2.8
+uphill = 2.79
 wx = -13.2
 wy = -8.88
 gamma = -1.135
-#gamma = 0
+
+#wx = 0
+#wy = 0
+#hyzer = 5.8
+#nose_up = -2.17
+
 
 #degrees = math.atan2(wx/2, rot)
 #degrees = math.atan2(rot, wx/2)
@@ -53,9 +59,10 @@ t, x, y, z = result.times, result.x, result.y, result.z
 #plt.plot(t, result.z)
 
 
-plt.plot(t, result.y)
-plt.plot(t, result.z)
-#plt.plot(t, result.dtheta)
+#plt.plot(t, result.y)
+#plt.plot(t, result.z)
+plt.plot(t, result.phi)
+plt.plot(t, result.theta)
 #plt.plot(t, result.z)
 #pprint(len(result.x))
 

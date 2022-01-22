@@ -55,7 +55,7 @@ def flight_path():
         'qy': result.qy.tolist(),
         'qz': result.qz.tolist(),
         'qw': result.qw.tolist(),
-        'gamma': [i + gamma for i in result.gamma],
+        'gamma': [i for i in result.gamma],
     }
     return res
 
