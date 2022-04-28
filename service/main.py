@@ -7,6 +7,19 @@ from frispy import Disc, Discs
 
 app = Flask(__name__)
 
+# same as flight_path, but with multiple discs
+@app.route('/api/flight_paths', methods=['POST'])
+def flight_paths():
+    content = request.json
+    discs = content['disc_names']
+    res = []
+    for disc in discs:
+        content['disc_name'] = disc
+        res.append(flight_path_helper(content))
+
+    return res
+
+
 # this method assumes the disc velocity is in the X direction.
 # This library uses Z as up so Y points to the left (if X is straight ahead)
 # This does not handle rotation of the disc in the resulting quaternion
@@ -15,6 +28,10 @@ app = Flask(__name__)
 @app.route('/api/flight_path', methods=['POST'])
 def flight_path():
     content = request.json
+    return flight_path_helper(content)
+
+
+def flight_path_helper(content):
     model = Discs.from_string(content['disc_name'])
     v = content['v']
     spin = content['spin']
