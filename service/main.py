@@ -12,10 +12,10 @@ app = Flask(__name__)
 def flight_paths():
     content = request.json
     discs = content['disc_names']
-    res = []
+    res = {}
     for disc in discs:
         content['disc_name'] = disc
-        res.append(flight_path_helper(content))
+        res[disc] = flight_path_helper(content)
 
     return res
 
