@@ -29,7 +29,7 @@ class Environment:
     def __init__(
         self,
         air_density: float = 1.225,
-        g: float = 9.81,
+        g: float = 9.80665,
         grav_vector: Optional[np.ndarray] = None,
     ):
         self._air_density = air_density
