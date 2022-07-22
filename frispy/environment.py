@@ -28,7 +28,9 @@ class Environment:
 
     def __init__(
         self,
-        air_density: float = 1.225,
+        air_density: float = 1.225, # 15C -> 59
+        # air_density: float = 1.3, # cold 0C
+        # air_density: float = 1.1455, # hot 35C -> 95F
         g: float = 9.80665,
         grav_vector: Optional[np.ndarray] = None,
     ):
