@@ -7,9 +7,9 @@ from scipy.optimize import minimize
 from frispy import Disc
 from frispy import Discs
 
-model = Discs.destroyer
+model = Discs.beefy_destroyer
 mph_to_mps = 0.44704
-v = 70 * mph_to_mps
+v = 70 * mph_to_mps # what is the optimal flight for 70mph
 rot = -v / model.diameter
 
 def distance(x):
@@ -20,7 +20,7 @@ def distance(x):
     rx = r.x[-1]
     return -rx
 
-x0 = [10, -4, 20]
+x0 = [4, -4, 0]
 res = minimize(distance, x0, method='powell', options={'xtol': 1e-8, 'disp': True})
 pprint(res)
 a, nose_up, hyzer = res.x

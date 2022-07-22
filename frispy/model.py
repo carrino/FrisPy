@@ -254,17 +254,57 @@ class Model:
 
         # TODO: figure out why sideways motion happens with 0 pty0
         PTy0 = self.get_value("PTy0")
-        PTya = self.get_value("PTya")
+        # PTya = self.get_value("PTya")
+        PTya = 0.008 * 180 / math.pi
+
+        deg_30_in_rad = 30 * math.pi / 180
+        if alpha < -deg_30_in_rad:
+            percent = (alpha + math.pi / 2) / (math.pi/2 - deg_30_in_rad)
+            return percent * (-self.C_y(deg_30_in_rad) + 2 * PTy0)
+        elif alpha < 0:
+            return -self.C_y(-alpha) + 2 * PTy0
+
         cavity_pitch_adjust = 0
-        angle_of_cavity = self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.diameter
-        if angle_of_cavity > alpha > -angle_of_cavity:
-            cavity_pitch_adjust = -math.sin(math.pi * alpha / angle_of_cavity) * (PTya * angle_of_cavity / 4)
+        # speed0
+        angle_of_cavity = 0.28
+        cavity_scale = 1.0 * 2 * angle_of_cavity / math.pi
+
+        #speed2
+        angle_of_cavity = 0.28
+        cavity_scale = 0.8 * 2 * angle_of_cavity / math.pi
+
+        #speed5
+        angle_of_cavity = 0.28
+        cavity_scale = 0.48 * 2 * angle_of_cavity / math.pi
+
+        #speed7
+        angle_of_cavity = 0.28
+        cavity_scale = 0.4 * 2 * angle_of_cavity / math.pi
+
+        #speed9
+        angle_of_cavity = 0.28
+        cavity_scale = 0.35 * 2 * angle_of_cavity / math.pi
+
+        #speed11
+        angle_of_cavity = 0.28
+        cavity_scale = 0.3 * 2 * angle_of_cavity / math.pi
+
+        #speed14
+        angle_of_cavity = 0.28
+        cavity_scale = 0.2 * 2 * angle_of_cavity / math.pi
+
+        # angle_of_cavity = 3 * self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.diameter
+        if alpha <= angle_of_cavity:
+            cavity_pitch_adjust = -math.sin(math.pi * alpha / angle_of_cavity / 2) * PTya * cavity_scale
+        else:
+            cavity_pitch_adjust = -PTya * cavity_scale
         pitch = PTy0 + PTya * alpha
         if alpha <= 0.3:
             return pitch + cavity_pitch_adjust
         elif alpha <= Model.stall:
             # pitch doubles after about .3 rad
-            return pitch + PTya * (alpha - 0.3)
+            # return pitch + PTya * (alpha - 0.3)
+            return pitch + cavity_pitch_adjust
         elif alpha <= 80 * math.pi / 180:
             # after stall the pitch drops
             return self.C_y(15 * math.pi / 180)

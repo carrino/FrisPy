@@ -1,5 +1,6 @@
 #  Copyright (c) 2021 John Carrino
 
+import math
 from frispy.model import Model
 
 # constants come from wind tunnel testing done by
@@ -29,9 +30,114 @@ class Discs:
             raise ValueError("name not found")
 
     @staticmethod
-    def from_flight_numbers(speed: float, glide: float, turn: float, fade: float) -> Model:
-        # TODO: return model based on flight numbers
-        return Model()
+    def rim_width_from_speed(speed: float) -> float:
+        if speed < 1:
+            return 0.7 / 100
+        elif speed <= 2:
+            return 0.9 / 100
+        elif speed <= 3:
+            return 1.0 / 100
+        elif speed <= 4:
+            return 1.2 / 100
+        elif speed <= 5:
+            return 1.4 / 100
+        elif speed <= 6:
+            return 1.5 / 100
+        elif speed <= 7:
+            return 1.7 / 100
+        elif speed <= 8:
+            return 1.8 / 100
+        elif speed <= 9:
+            return 1.9 / 100
+        elif speed <= 10:
+            return 2 / 100
+        elif speed <= 11:
+            return 2.15 / 100
+        elif speed <= 12:
+            return 2.3 / 100
+        elif speed <= 13:
+            return 2.4 / 100
+        elif speed <= 14:
+            return 2.5 / 100
+        else:
+            return speed
+
+    # drag based on speed. This is the minimum drag at 0 lift.  aka PD0
+    @staticmethod
+    def drag_from_speed(speed: float) -> float:
+        return .089 - 0.01355 * math.sqrt(speed)
+
+    # pitching moment at zero angle of attack based on turn
+    # ultrastar is about a -1.5 turn
+    @staticmethod
+    def cm0_from_turn(t: float) -> float:
+        return t * 0.009 - 0.014
+
+    # pitching moment linear with angle of attack
+    # this is also dependent on the cavity of the disc
+    @staticmethod
+    def cm_from_fade(fade: float) -> float:
+        return (math.sqrt(fade) + 1) * 0.002 * 180 / math.pi
+
+    @staticmethod
+    def maxGlideRangeForSpeed(speed: float) -> float:
+        if speed < 3:
+            return 3
+        elif speed > 5:
+            return 5
+        else:
+            return speed
+
+    # lift at zero angle of attack based on glide
+    # larger diameter discs have more lift per angle of attack.
+    @staticmethod
+    def cl0FromGlide(glide: float, speed: float) -> float:
+        percent = glide / Discs.maxGlideRangeForSpeed(speed)
+        return 0.152 * percent
+
+    # lift change per delta AoA
+    # higher speed discs have less lift for the same angle of attack
+    # speed 0 is basically defined to be the ultrastar
+    @staticmethod
+    def dcl_da_from_speed(speed: float) -> float:
+        return (0.052 - 0.004 * math.sqrt(speed)) * 180 / math.pi
+
+    @staticmethod
+    def from_flight_numbers(speed: float, glide: float, turn: float, fade: float, weight: float = 0.175) -> Model:
+        cl0 = Discs.cl0FromGlide(glide, speed)
+        drag = Discs.drag_from_speed(speed)
+        pitch0 = Discs.cm0_from_turn(turn)
+        pitch = Discs.cm_from_fade(fade)
+        rim_depth = 0.012
+        rim_width = Discs.rim_width_from_speed(speed)
+        return Model(**{
+            "PL0": cl0,  # lift factor at 0 AoA (depends on glide)
+            "PLa": 2.29,  # lift factor linear with AoA (0.04 deg -> 2.29 rad) (constant)
+            "PD0": drag,  # drag at min lift
+            # (.055 at speed 11, .061 speed 5, .067 speed 4, .083 speed 2)
+            "PDa": 1.67,  # quadratic with AoA from zero lift point (constant)
+            "PTxwz": 0,  # rolling moment related to spin precession?
+            "PTy0": pitch0,
+            # pitching moment from disc stability at 0 AoA (based on turn of disc, also based on cavity of disc)
+            # -0.02 turn -1, -0.007 turn 1, -0.033 turn -2, -0.015 turn 0
+            "PTya": pitch,
+            # pitching moment from disc stability linear in AoA (0.006 / deg -> 0.343) (based on fade of disc)
+            # fade 0 0.002, fade 1 0.004, fade 3  0.006, fade 5 0.008  (per degree not per rad)
+            "PTywy": -1.3e-2,  # dampening factor for pitch (constant)
+            "PTxwx": -1.3e-2,  # dampening factor for roll (constant)
+            "PTzwz": -3.4e-5,  # spin down (constant)
+            "I_xx": 6.183E-04,
+            "I_zz": 1.231E-03,
+            "mass": weight,
+            "diameter": 0.211,
+            "rim_depth": rim_depth,
+            "rim_width": rim_width,
+            "height": 0.014,
+            "speed": speed,
+            "turn": turn,
+            "fade": fade,
+            "glide": glide,
+        })
 
     # condor I_xx is 4-5% higher than 1/2 I_zz
     # I suspect most discs are somewhere around 3-5% off (maybe less for drivers).
