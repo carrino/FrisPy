@@ -11,11 +11,17 @@ app = Flask(__name__)
 @app.route('/api/flight_paths', methods=['POST'])
 def flight_paths():
     content = request.json
-    discs = content['disc_names']
+    discs = content.get('disc_names')
     res = {}
-    for disc in discs:
-        content['disc_name'] = disc
-        res[disc] = flight_path_helper(content)
+    if discs:
+        for disc in discs:
+            content['disc_name'] = disc
+            res[disc] = flight_path_helper(content)
+    else:
+        discs = content.get('disc_numbers')
+        for index, disc in enumerate(discs):
+            content['flight_numbers'] = disc
+            res[index] = flight_path_helper(content)
 
     return res
 
@@ -33,6 +39,8 @@ def flight_path():
 
 def flight_path_helper(content):
     model = Discs.from_string(content['disc_name'])
+    if not model:
+        model = Discs.from_flight_numbers(content['flight_numbers'])
     v = content['v']
     spin = content['spin']
     wx = 0

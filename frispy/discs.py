@@ -1,13 +1,15 @@
 #  Copyright (c) 2021 John Carrino
 
 import math
+from typing import Optional, TypedDict
+
 from frispy.model import Model
 
 # constants come from wind tunnel testing done by
 # check out "DYNAMICS AND PERFORMANCE OF FLYING DISCS" page 111
 class Discs:
     @staticmethod
-    def from_string(name: str) -> Model:
+    def from_string(name: str) -> Optional[Model]:
         if name == "wraith":
             return Discs.wraith
         elif name == "ultrastar":
@@ -29,7 +31,7 @@ class Discs:
         elif name == "xcal":
             return Discs.xcal
         else:
-            raise ValueError("name not found")
+            return None
 
     @staticmethod
     def rim_width_from_speed(speed: float) -> float:
@@ -108,8 +110,21 @@ class Discs:
     def dcl_da_from_speed(speed: float) -> float:
         return (0.052 - 0.004 * math.sqrt(speed)) * 180 / math.pi
 
+    class FlightNumbers(TypedDict):
+        fade: Optional[float] = None
+        glide: float
+        speed: float
+        turn: float
+        weight: float = 175
+
     @staticmethod
-    def from_flight_numbers(speed: float, glide: float, turn: float, fade: float, weight: float = 0.175) -> Model:
+    # def from_flight_numbers(speed: float, glide: float, turn: float, fade: float, weight: float = 0.175) -> Model:
+    def from_flight_numbers(nums: FlightNumbers) -> Model:
+        speed = float(nums["speed"])
+        glide = float(nums["glide"])
+        turn = float(nums["turn"])
+        weight = float(nums.get("weight", 175.0))
+        fade = nums.get("fade")
         cl0 = Discs.cl0FromGlide(glide, speed)
         drag = Discs.drag_from_speed(speed)
         pitch0 = Discs.cm0_from_turn(turn)
