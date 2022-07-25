@@ -71,15 +71,19 @@ class Discs:
 
     # pitching moment at zero angle of attack based on turn
     # ultrastar is about a -1.5 turn
+    # zero pitching at 0 AoA means turn is +1.56
+    # I think tilt is actually 9, 1, +2, 5
+    # 0 turn means a lot of things
     @staticmethod
     def cm0_from_turn(t: float) -> float:
         return t * 0.009 - 0.014
 
-    # pitching moment linear with angle of attack
-    # this is also dependent on the cavity of the disc
-    @staticmethod
-    def cm_from_fade(fade: float) -> float:
-        return (math.sqrt(fade) + 1) * 0.002 * 180 / math.pi
+    # fade appears to just be turn value +1, +2, +3, +4 for putters, mids, fairly, distance drivers
+    # fade is just a function of cm0 (turn) and lack of cavity to prevent the flat plate effect from
+    # happening
+    #@staticmethod
+    #def cm_from_fade(fade: float) -> float:
+    #    return (math.sqrt(fade) + 1) * 0.002 * 180 / math.pi
 
     @staticmethod
     def maxGlideRangeForSpeed(speed: float) -> float:
@@ -109,7 +113,9 @@ class Discs:
         cl0 = Discs.cl0FromGlide(glide, speed)
         drag = Discs.drag_from_speed(speed)
         pitch0 = Discs.cm0_from_turn(turn)
-        pitch = Discs.cm_from_fade(fade)
+        # TODO: delete this
+        #pitch = Discs.cm_from_fade(fade)
+        pitch = 0.3 # this value is not used in model.py
         rim_depth = 0.012
         rim_width = Discs.rim_width_from_speed(speed)
         return Model(**{
