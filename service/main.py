@@ -39,7 +39,7 @@ def flight_path():
 
 
 def flight_path_helper(content):
-    model = Discs.from_string(content['disc_name'])
+    model = Discs.from_string(content.get('disc_name'))
     if not model:
         model = Discs.from_flight_numbers(content['flight_numbers'])
     v = content['v']
