@@ -2,10 +2,11 @@ import math
 import os
 
 from flask import Flask, request
-
 from frispy import Disc, Discs
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # same as flight_path, but with multiple discs
 @app.route('/api/flight_paths', methods=['POST'])
