@@ -27,7 +27,7 @@ class Model:
             "PTy0": -0.02, # pitching moment from disc stability at 0 AoA
             "PTya": 0.13, # pitching moment from disc stability linear in AoA
 
-            "PTxwx": -1.08e-3, # dampening factor for roll
+            "PTxwx": -1.08e-3, # dampening factor for wobble
             "PTzwz": -3.4e-5, # spin down
 
             "PTxwz": 0, # rolling moment related to spin precession?

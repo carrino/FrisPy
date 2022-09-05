@@ -11,15 +11,15 @@ import numpy as np
 
 # drag based on speed. This is the minimum drag at 0 lift.  aka PD0
 def drag_from_speed(speed: float) -> float:
-    return .089 - 0.01355 * math.sqrt(speed)
+    return .084 - 0.01355 * math.sqrt(speed)
 
 # ultrastar is basically a speed 0 disc
 # other speeds are defined relative to the ultrastar
 # ultrastar, aviar, roc, buzzz, storm, quarter k, wraith, flick
 speed = [0.1, 2, 4, 5, 6, 9, 11, 12]
 drag = [.085, .072, .066, .058, .053, .059, .048, .042]
-#plt.plot([math.sqrt(s) for s in speed], drag)  # decently linear
-#plt.plot([math.sqrt(s) for s in speed], [drag_from_speed(x) for x in speed])  # decently linear
+# plt.plot([math.sqrt(s) for s in speed], drag)  # decently linear
+# plt.plot([math.sqrt(s) for s in speed], [drag_from_speed(x) for x in speed])  # decently linear
 
 #fade = [0, 1, 1, 2, 3, 5]
 #dCm_da = [0.002, 0.003, .004, .005, .006, 0.008]
@@ -27,14 +27,14 @@ drag = [.085, .072, .066, .058, .053, .059, .048, .042]
 
 # pitching moment at zero angle of attack based on turn
 def cm0_from_turn(t: float) -> float:
-    return t * 0.009 - 0.014
+    return t * 0.009 - 0.015
 
 # ultrastar is about a -1.5 turn
 # +1.5 turn would be a disc with 0 pitching moment at 0 AoA
 turn = [-2, -1, -1, 0, 0, 1]
 cm0 = [-0.033, -0.026, -0.020, -0.018, -0.015, -0.007]
-# plt.plot(turn, cm0)
-# plt.plot(turn, [cm0_from_turn(x) for x in turn])
+#plt.plot(turn, cm0)
+#plt.plot(turn, [cm0_from_turn(x) for x in turn])
 
 # pitching moment linear with angle of attack
 # this is also dependent on the cavity of the disc
@@ -59,10 +59,10 @@ cm = [0.002, 0.004, 0.006, 0.008]
 # disc = Discs.from_flight_numbers(11, 5, -1, 3)
 # disc = Discs.from_flight_numbers(5, 5, -2, 1)
 #disc = Discs.from_flight_numbers(7, 5, -1, 1)
-disc = Discs.from_flight_numbers(14, 5, -1, 3)
+disc = Discs.from_flight_numbers({'speed': 13, 'glide': 5, 'turn': 0})
 # degrees = range(0, 45)
 degrees = range(-1, 16)
-plt.plot(degrees, [disc.C_y(aoa * math.pi / 180) for aoa in degrees])
+# plt.plot(degrees, [disc.C_y(aoa * math.pi / 180) for aoa in degrees])
 
 
 def maxGlideRangeForSpeed(speed: float) -> float:
@@ -97,7 +97,7 @@ def dcl_da_from_speed(speed: float) -> float:
 # ultrastar, aviar, roc, buzzz, storm, quarter k, wraith, flick
 dcl_da = [.051, .044, .043, .041, .045, .039, .04, 0.038]
 dcl_da = [i * 180 / math.pi for i in dcl_da]
-# plt.plot([math.sqrt(s) for s in speed], dcl_da)
-# plt.plot([math.sqrt(s) for s in speed], [dcl_da_from_speed(i) for i in speed])
+plt.plot([math.sqrt(s) for s in speed], dcl_da)
+plt.plot([math.sqrt(s) for s in speed], [dcl_da_from_speed(i) for i in speed])
 
 plt.show()

@@ -69,7 +69,8 @@ class Discs:
     # drag based on speed. This is the minimum drag at 0 lift.  aka PD0
     @staticmethod
     def drag_from_speed(speed: float) -> float:
-        return .089 - 0.01355 * math.sqrt(speed)
+        return .084 - 0.01355 * math.sqrt(speed)
+
 
     # pitching moment at zero angle of attack based on turn
     # ultrastar is about a -1.5 turn
@@ -146,9 +147,9 @@ class Discs:
             "PTya": pitch,
             # pitching moment from disc stability linear in AoA (0.006 / deg -> 0.343) (based on fade of disc)
             # fade 0 0.002, fade 1 0.004, fade 3  0.006, fade 5 0.008  (per degree not per rad)
-            "PTywy": -1.3e-2,  # dampening factor for pitch (constant)
-            "PTxwx": -1.3e-2,  # dampening factor for roll (constant)
-            "PTzwz": -3.4e-5,  # spin down (constant)
+            "PTxwx": -6.0e-4,  # dampening factor for wobble (constant) 21.5 -> 3.3 over 1s
+            "PTzwz": -2.1e-5,
+            # spin down (constant) at 58mph spindown is about 24m/s^2 (3.5% (118.5 -> 114.5) over .82s)
             "I_xx": 6.183E-04,
             "I_zz": 1.231E-03,
             "mass": weight,
