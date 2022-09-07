@@ -5,6 +5,8 @@ from typing import Optional, TypedDict
 
 from frispy.model import Model
 
+MAX_GLIDE = 5
+
 # constants come from wind tunnel testing done by
 # check out "DYNAMICS AND PERFORMANCE OF FLYING DISCS" page 111
 class Discs:
@@ -33,39 +35,6 @@ class Discs:
         else:
             return None
 
-    @staticmethod
-    def rim_width_from_speed(speed: float) -> float:
-        if speed < 1:
-            return 0.7 / 100
-        elif speed <= 2:
-            return 0.9 / 100
-        elif speed <= 3:
-            return 1.0 / 100
-        elif speed <= 4:
-            return 1.2 / 100
-        elif speed <= 5:
-            return 1.4 / 100
-        elif speed <= 6:
-            return 1.5 / 100
-        elif speed <= 7:
-            return 1.7 / 100
-        elif speed <= 8:
-            return 1.8 / 100
-        elif speed <= 9:
-            return 1.9 / 100
-        elif speed <= 10:
-            return 2 / 100
-        elif speed <= 11:
-            return 2.15 / 100
-        elif speed <= 12:
-            return 2.3 / 100
-        elif speed <= 13:
-            return 2.4 / 100
-        elif speed <= 14:
-            return 2.5 / 100
-        else:
-            return speed
-
     # drag based on speed. This is the minimum drag at 0 lift.  aka PD0
     @staticmethod
     def drag_from_speed(speed: float) -> float:
@@ -73,13 +42,17 @@ class Discs:
 
 
     # pitching moment at zero angle of attack based on turn
-    # ultrastar is about a -1.5 turn
-    # zero pitching at 0 AoA means turn is +1.56
+    # ultrastar is about a -2 turn
+    # zero pitching at 0 AoA means turn is +1
     # I think tilt is actually 9, 1, +2, 5
     # 0 turn means a lot of things
     @staticmethod
     def cm0_from_turn(t: float) -> float:
-        return t * 0.009 - 0.014
+        return t * 0.009 - 0.000
+
+    @staticmethod
+    def turn_from_cm0(cm0: float) -> float:
+        return (cm0 + 0.000) / 0.009
 
     # fade appears to just be turn value +1, +2, +3, +4 for putters, mids, fairly, distance drivers
     # fade is just a function of cm0 (turn) and lack of cavity to prevent the flat plate effect from
@@ -92,16 +65,22 @@ class Discs:
     def maxGlideRangeForSpeed(speed: float) -> float:
         if speed < 3:
             return 3
-        elif speed > 5:
-            return 5
+        elif speed > MAX_GLIDE:
+            return MAX_GLIDE
         else:
             return speed
 
+    # glide ranges from 0 to 5 for all speeds.
+    # if a disc has a ton of dome, then it's a 5
     # lift at zero angle of attack based on glide
     # larger diameter discs have more lift per angle of attack.
+    # 0.152/2.29 rads in deg = 3.8 degrees (max glide is 3.8 deg nose down lowest drag)
+    # the best way to look at this stat is on a drag graph
+    # River might be 7, but that seems to high at 5.3 deg
     @staticmethod
-    def cl0FromGlide(glide: float, speed: float) -> float:
-        percent = glide / Discs.maxGlideRangeForSpeed(speed)
+    def cl0FromGlide(glide: float) -> float:
+        # percent = glide / Discs.maxGlideRangeForSpeed(speed)
+        percent = glide / MAX_GLIDE
         return 0.152 * percent
 
     # lift change per delta AoA
@@ -116,7 +95,7 @@ class Discs:
         glide: float
         speed: float
         turn: float
-        weight: float = 175
+        weight: float = 0.175
 
     @staticmethod
     # def from_flight_numbers(speed: float, glide: float, turn: float, fade: float, weight: float = 0.175) -> Model:
@@ -124,16 +103,26 @@ class Discs:
         speed = float(nums["speed"])
         glide = float(nums["glide"])
         turn = float(nums["turn"])
-        weight = float(nums.get("weight", 175.0))
+        weight = float(nums.get("weight", 0.175))
         fade = nums.get("fade")
-        cl0 = Discs.cl0FromGlide(glide, speed)
+
+        speed = min(14, speed)
+        speed = max(0, speed)
+
+        weight = min(0.175, weight)
+        weight = max(0, weight)
+
+        glide = min(7, glide)
+        glide = max(0, glide)
+
+        cl0 = Discs.cl0FromGlide(glide)
         drag = Discs.drag_from_speed(speed)
         pitch0 = Discs.cm0_from_turn(turn)
         # TODO: delete this
         #pitch = Discs.cm_from_fade(fade)
         pitch = 0.3 # this value is not used in model.py
         rim_depth = 0.012
-        rim_width = Discs.rim_width_from_speed(speed)
+        rim_width = Model.rim_width_from_speed(speed)
         return Model(**{
             "PL0": cl0,  # lift factor at 0 AoA (depends on glide)
             "PLa": 2.29,  # lift factor linear with AoA (0.04 deg -> 2.29 rad) (constant)
@@ -150,8 +139,8 @@ class Discs:
             "PTxwx": -6.0e-4,  # dampening factor for wobble (constant) 21.5 -> 3.3 over 1s
             "PTzwz": -2.1e-5,
             # spin down (constant) at 58mph spindown is about 24m/s^2 (3.5% (118.5 -> 114.5) over .82s)
-            "I_xx": 6.183E-04,
-            "I_zz": 1.231E-03,
+            "I_xx": 6.183E-04 * weight / 0.175,
+            "I_zz": 1.231E-03 * weight / 0.175,
             "mass": weight,
             "diameter": 0.211,
             "rim_depth": rim_depth,

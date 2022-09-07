@@ -97,7 +97,30 @@ def dcl_da_from_speed(speed: float) -> float:
 # ultrastar, aviar, roc, buzzz, storm, quarter k, wraith, flick
 dcl_da = [.051, .044, .043, .041, .045, .039, .04, 0.038]
 dcl_da = [i * 180 / math.pi for i in dcl_da]
-plt.plot([math.sqrt(s) for s in speed], dcl_da)
-plt.plot([math.sqrt(s) for s in speed], [dcl_da_from_speed(i) for i in speed])
+# plt.plot([math.sqrt(s) for s in speed], dcl_da)
+# plt.plot([math.sqrt(s) for s in speed], [dcl_da_from_speed(i) for i in speed])
+
+
+def cavity_multiplier_from_speed(speed: float) -> float:
+    return 1 - (1 - 0.28) * math.sqrt(speed / 14)
+
+angle_of_cavity = 0.28
+cavity_scales = [0, 2, 5, 7, 9, 11, 14]
+cavity_multiplier = [1.0, .8, .48, .4, .35, .3, .28]
+#plt.plot([math.sqrt(s) for s in cavity_scales], cavity_multiplier)
+#plt.plot([math.sqrt(s) for s in cavity_scales], [cavity_multiplier_from_speed(s) for s in cavity_scales])
+
+def rim_width_from_speed(speed: float) -> float:
+    return 0.04 + math.sqrt(speed) * (2.5-.7) / (math.sqrt(14)-1)
+
+def speed_from_rim_width(rim_width: float) -> float:
+    return ((rim_width - 0.04) * 1.52314299265) ** 2
+
+rim_speeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+rim_widths = [0.7, .9, 1, 1.2, 1.4, 1.5, 1.7, 1.8, 1.9, 2, 2.15, 2.3, 2.4, 2.5]
+#plt.plot([math.sqrt(s) for s in rim_speeds], rim_widths)
+#plt.plot([math.sqrt(s) for s in rim_speeds], [rim_width_from_speed(s) for s in rim_speeds])
+plt.plot(rim_widths, rim_speeds)
+plt.plot(rim_widths, [speed_from_rim_width(w) for w in rim_widths])
 
 plt.show()

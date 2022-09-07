@@ -1,6 +1,8 @@
 import math
 from pprint import pprint
 import numpy as np
+import time
+
 
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
@@ -34,6 +36,7 @@ degrees = math.atan(wx/rot/2) * 180 / math.pi
 # phi is anhyzer (roll around X axis)
 # theta is nose down (pitch around Y axis)
 
+start = time.perf_counter()
 disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(uphill * math.pi / 180) * v,
                     "nose_up": nose_up, "hyzer": hyzer, "dphi": wx, "dtheta": wy, "gamma": gamma})
 
@@ -41,8 +44,12 @@ hz = abs(rot) / math.pi / 2
 # In order to get a smooth output for the rotation of the disc
 # we need to have enough samples to spin in the correct direction
 max_step = 0.45 / hz
-result = disc.compute_trajectory(30, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
-#result = disc.compute_trajectory(15, **{"max_step": .2, "rtol": 1e-5, "atol": 1e-8})
+result = disc.compute_trajectory(30, **{"max_step": max_step, "rtol": 1e-3, "atol": 1e-5})
+#result = disc.compute_trajectory(15, **{"max_step": max_step, "rtol": 5e-4, "atol": 5e-6})
+
+duration = time.perf_counter() - start
+pprint(duration)
+
 
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
@@ -55,14 +62,14 @@ t, x, y, z = result.times, result.x, result.y, result.z
 #plt.plot(t, [i / math.pi * 180 for i in result.aoa])
 
 
-#plt.plot(t, result.y)
-#plt.plot(t, result.z)
+plt.plot(t, result.y)
+plt.plot(t, result.z)
 
 
 #plt.plot(t, result.y)
 #plt.plot(t, result.z)
-plt.plot(t, result.phi)
-plt.plot(t, result.theta)
+#plt.plot(t, result.phi)
+#plt.plot(t, result.theta)
 #plt.plot(t, result.z)
 #pprint(len(result.x))
 

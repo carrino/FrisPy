@@ -18,7 +18,7 @@ class Model:
     def __init__(self, **kwargs):
         self._coefficients: Dict[str, float] = {
             "PL0": 0.13, # lift factor at 0 AoA
-            "PLa": 2.7, # lift factor linear with AoA
+            "PLa": 2.7, # lift factor linear with AoA in rads
 
             "PD0": 0.08, # drag at 0 lift
             "PDa": 1.9, # quadratic with AoA from zero lift point
@@ -103,9 +103,20 @@ class Model:
     def area(self) -> float:
         return self.get_value("area")
 
+    def get_speed(self) -> float:
+        speed = self.coefficients.get("speed")
+        if speed:
+            return speed
+        return Model.speed_from_rim_width(self.rim_width)
+
+
     @property
     def diameter(self) -> float:
         return self.get_value("diameter")
+
+    @property
+    def rim_width(self) -> float:
+        return self.get_value("rim_width")
 
     @property
     def I_zz(self) -> float:
@@ -235,6 +246,21 @@ class Model:
         """
         return 0
 
+    @staticmethod
+    def cavity_multiplier_from_speed(speed: float) -> float:
+        return 1 - (1 - 0.28) * math.sqrt(speed / 14)
+
+    @staticmethod
+    # rim_width is in meters
+    def rim_width_from_speed(speed: float) -> float:
+        cm = 0.04 + math.sqrt(speed) * (2.5 - .7) / (math.sqrt(14) - 1)
+        return cm / 100
+
+    @staticmethod
+    # rim_width is in meters
+    def speed_from_rim_width(rim_width: float) -> float:
+        return ((rim_width * 100 - 0.04) * 1.52314299265) ** 2
+
     def C_y(self, alpha: float) -> float:
         """
         pitching moment.  pitching causes turn and fade due to gyroscopic precession.
@@ -265,33 +291,8 @@ class Model:
             return -self.C_y(-alpha) + 2 * PTy0
 
         cavity_pitch_adjust = 0
-        # speed0
         angle_of_cavity = 0.28
-        cavity_scale = 1.0 * 2 * angle_of_cavity / math.pi
-
-        #speed2
-        angle_of_cavity = 0.28
-        cavity_scale = 0.8 * 2 * angle_of_cavity / math.pi
-
-        #speed5
-        angle_of_cavity = 0.28
-        cavity_scale = 0.48 * 2 * angle_of_cavity / math.pi
-
-        #speed7
-        angle_of_cavity = 0.28
-        cavity_scale = 0.4 * 2 * angle_of_cavity / math.pi
-
-        #speed9
-        angle_of_cavity = 0.28
-        cavity_scale = 0.35 * 2 * angle_of_cavity / math.pi
-
-        #speed11
-        angle_of_cavity = 0.28
-        cavity_scale = 0.3 * 2 * angle_of_cavity / math.pi
-
-        #speed14
-        angle_of_cavity = 0.28
-        cavity_scale = 0.2 * 2 * angle_of_cavity / math.pi
+        cavity_scale = Model.cavity_multiplier_from_speed(self.get_speed()) *  2 * angle_of_cavity / math.pi
 
         # angle_of_cavity = 3 * self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.diameter
         if alpha <= angle_of_cavity:
