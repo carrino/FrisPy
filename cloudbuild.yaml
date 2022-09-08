@@ -11,7 +11,7 @@ steps:
     args:
     - 'run'
     - 'deploy'
-    - 'frispy'
+    - '$_SERVICE_ID'
     - '--image'
     - 'gcr.io/$PROJECT_ID/frispy/$BRANCH_NAME:$COMMIT_SHA'
     - '--region'
