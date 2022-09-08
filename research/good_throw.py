@@ -44,8 +44,8 @@ hz = abs(rot) / math.pi / 2
 # In order to get a smooth output for the rotation of the disc
 # we need to have enough samples to spin in the correct direction
 max_step = 0.45 / hz
-result = disc.compute_trajectory(30, **{"max_step": max_step, "rtol": 1e-3, "atol": 1e-5})
-#result = disc.compute_trajectory(15, **{"max_step": max_step, "rtol": 5e-4, "atol": 5e-6})
+#result = disc.compute_trajectory(30, **{"max_step": 1, "rtol": 1e-3, "atol": 1e-5})
+result = disc.compute_trajectory(15, **{"max_step": max_step, "rtol": 5e-4, "atol": 5e-6})
 
 duration = time.perf_counter() - start
 pprint(duration)

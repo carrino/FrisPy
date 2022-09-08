@@ -48,11 +48,11 @@ class Discs:
     # 0 turn means a lot of things
     @staticmethod
     def cm0_from_turn(t: float) -> float:
-        return t * 0.009 - 0.000
+        return t * 0.005 - 0.000
 
     @staticmethod
     def turn_from_cm0(cm0: float) -> float:
-        return (cm0 + 0.000) / 0.009
+        return (cm0 + 0.000) / 0.005
 
     # fade appears to just be turn value +1, +2, +3, +4 for putters, mids, fairly, distance drivers
     # fade is just a function of cm0 (turn) and lack of cavity to prevent the flat plate effect from
