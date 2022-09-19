@@ -8,7 +8,8 @@ from frispy import Disc
 from frispy import Discs
 
 # model = Discs.wraith
-model = Discs.beefy_destroyer
+model = Discs.xcal
+pprint(Discs.turn_from_cm0(model.coefficients["PTy0"]))
 model = Discs.from_flight_numbers({"speed": 12, "glide": 5, "turn": -1})
 mph_to_mps = 0.44704
 v = 55 * mph_to_mps
