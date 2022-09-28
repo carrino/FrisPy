@@ -42,8 +42,8 @@ class Discs:
 
 
     # pitching moment at zero angle of attack based on turn
-    # ultrastar is about a -2 turn
-    # zero pitching at 0 AoA means turn is +1
+    # ultrastar is about a -3 turn
+    # zero pitching at 0 AoA means turn is 0
     # I think tilt is actually 9, 1, +2, 5
     # 0 turn means a lot of things
     @staticmethod
@@ -61,14 +61,14 @@ class Discs:
     #def cm_from_fade(fade: float) -> float:
     #    return (math.sqrt(fade) + 1) * 0.002 * 180 / math.pi
 
-    @staticmethod
-    def maxGlideRangeForSpeed(speed: float) -> float:
-        if speed < 3:
-            return 3
-        elif speed > MAX_GLIDE:
-            return MAX_GLIDE
-        else:
-            return speed
+    # @staticmethod
+    # def maxGlideRangeForSpeed(speed: float) -> float:
+    #     if speed < 3:
+    #         return 3
+    #     elif speed > MAX_GLIDE:
+    #         return MAX_GLIDE
+    #     else:
+    #         return speed
 
     # glide ranges from 0 to 5 for all speeds.
     # if a disc has a ton of dome, then it's a 5
@@ -103,13 +103,13 @@ class Discs:
         speed = float(nums["speed"])
         glide = float(nums["glide"])
         turn = float(nums["turn"])
-        weight = float(nums.get("weight", 0.180))
+        weight = float(nums.get("weight", 0.175))
         fade = nums.get("fade")
 
         speed = min(14, speed)
         speed = max(0, speed)
 
-        weight = min(0.179, weight)
+        weight = min(0.180, weight)
         weight = max(0, weight)
 
         glide = min(7, glide)
