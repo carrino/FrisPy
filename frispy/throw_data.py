@@ -6,6 +6,11 @@ from scipy.spatial.transform import Rotation
 
 @dataclass
 class ThrowData:
+    # versions
+    ADD_SECONDS_SINCE_THROW_VERSION = 2
+    CHANGE_DPS_4K_8K = 5;
+    CURRENT_THROW_FORMAT_VERSION = CHANGE_DPS_4K_8K
+
     NUM_POINTS = 2000
     SENSORS_GRAVITY_STANDARD = 9.80665
     SENSORS_DPS_TO_RADS = 0.017453293
@@ -33,6 +38,16 @@ class ThrowData:
             q = q * rot.inv()
         return q
 
+
+    @staticmethod
+    def readSignedByte() -> int:
+        buf = f.read(1)
+        return struct.unpack('<b', buf)[0]
+
+    @staticmethod
+    def readUnsignedByte() -> int:
+        buf = f.read(1)
+        return struct.unpack('<B', buf)[0]
 
     @staticmethod
     def readUnsignedShort(f) -> int:
@@ -63,11 +78,16 @@ class ThrowData:
 
     @staticmethod
     def readFromFile(f):
-        numPoints = ThrowData.NUM_POINTS
-        version = ThrowData.readUnsignedShort(f)
+        formatVersion = ThrowData.readUnsignedByte(f);
+        hardwareVersion = ThrowData.readUnsignedByte(f)
         startIndex = ThrowData.readUnsignedShort(f)
-        lastIndex = ThrowData.readUnsignedShort(f)
-        type = ThrowData.readUnsignedShort(f)
+        secondsSinceThrow = ThrowData.readUnsignedShort(f)
+        if formatVersion < ADD_SECONDS_SINCE_THROW_VERSION:
+            secondsSinceThrow = 0;
+        dataType = ThrowData.readUnsignedByte(f)
+        numPoints = di.readUnsignedByte() * 100;
+        if formatVersion < ADD_CRC_CHECK or numPoints == 0:
+            numPoints = ThrowData.NUM_POINTS
         durationMicros = [None] * numPoints
         for i in range(numPoints):
             durationMicros[(i - startIndex + numPoints) % numPoints] = ThrowData.readUnsignedShort(f)
@@ -94,4 +114,4 @@ class ThrowData:
         qz = ThrowData.readFloat(f)
         rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
         temp = ThrowData.readFloat(f)
-        return ThrowData(version, durationMicros, accel0, gyros, accel1, accel2, rotation, temp, type)
+        return ThrowData(version, durationMicros, accel0, gyros, accel1, accel2, rotation, temp, dataType)
