@@ -103,7 +103,7 @@ class Discs:
         speed = float(nums["speed"])
         glide = float(nums["glide"])
         turn = float(nums["turn"])
-        weight = float(nums.get("weight", 0.179))
+        weight = float(nums.get("weight", 0.180))
         fade = nums.get("fade")
 
         speed = min(14, speed)
