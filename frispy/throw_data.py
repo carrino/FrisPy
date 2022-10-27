@@ -12,6 +12,7 @@ class ThrowData:
     OUTPUT_SCALE_FACTOR_400G = (SENSORS_GRAVITY_STANDARD * 400 / ((1 << 15) - 1))
     OUTPUT_SCALE_FACTOR_32G = (SENSORS_GRAVITY_STANDARD * 32 / ((1 << 15) - 1))
     OUTPUT_SCALE_FACTOR_4000DPS = (SENSORS_DPS_TO_RADS * 4000 / ((1 << 15) - 1))
+    OUTPUT_SCALE_FACTOR_8000DPS = (SENSORS_DPS_TO_RADS * 8000 / ((1 << 15) - 1))
 
     version: int
     durationMicros: list[int]
