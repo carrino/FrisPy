@@ -75,7 +75,9 @@ def flight_path_helper(content):
     hz = abs(spin) / math.pi / 2
     # In order to get a smooth output for the rotation of the disc
     # we need to have enough samples to spin in the correct direction
-    max_step = 0.45 / hz
+    max_step = 0.1
+    if hz > 4.5:
+      max_step = 0.45 / hz
     result = disc.compute_trajectory(30, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
     res = {
         'p': result.pos,
