@@ -98,30 +98,35 @@ class EOM:
         wz = ang_velocity[2]
         v_norm = np.linalg.norm(velocity)
 
-        # Handle pitch and roll as precession around Z and not a change to angular velocity.
-        roll = self.model.C_y(aoa) * torque * res["unit_vectors"]["xhat"]
-        pitch_up = self.model.C_x(aoa, v_norm, wz) * torque * res["unit_vectors"]["yhat"]
 
         wobble = res["w"]
-        w = (roll + pitch_up) / (i_zz * wz)
-        w += wobble
+        w = wobble
+        if abs(wz) > np.linalg.norm(wobble):
+            # handle torque as a gyroscopic presession, instead of a change to angular velocity
+            pitching_moment = self.model.C_y(aoa)
+            rolling_moment = self.model.C_x(aoa, v_norm, wz)
+            roll = pitching_moment * torque * res["unit_vectors"]["xhat"]
+            pitch_up = rolling_moment * torque * -res["unit_vectors"]["yhat"]
+            w += (roll + pitch_up) / (i_zz * wz)
 
-        # https://www.euclideanspace.com/physics/kinematics/angularvelocity/QuaternionDifferentiation2.pdf
         w_norm = np.linalg.norm(w)
-        if math.isclose(0, w_norm):
+        if w_norm < math.ulp(1.0):
             wquat = Rotation.from_quat([0, 0, 0, 1])
         else:
+            # https://www.euclideanspace.com/physics/kinematics/angularvelocity/QuaternionDifferentiation2.pdf
             wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
         res["dq"] = wquat.as_quat() * w_norm / 2
 
-        self.compute_wobble_precession(ang_velocity, torque, res)
+        self.compute_angular_acc(ang_velocity, torque, res, aoa, v_norm)
         return res
 
-    def compute_wobble_precession(
+    def compute_angular_acc(
             self,
             ang_velocity: np.ndarray,
             torque: float,
-            res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]):
+            res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
+            aoa: float,
+            v_norm: float):
         i_xx = self.model.I_xx
         i_zz = self.model.I_zz
         wx, wy, wz = ang_velocity
@@ -131,9 +136,15 @@ class EOM:
         dampening_z = self.model.dampening_z
         acc = np.array([wx * dampening / i_xx, wy * dampening / i_xx, wz * dampening_z / i_zz]) * torque
 
-        # Handle wobble by precession of angular velocity
-        delta_moment = self.model.I_zz - self.model.I_xx
-        acc += delta_moment / i_xx * 2 * wz * np.array([-wy, wx, 0])
+        wobble = res["w"]
+        if abs(wz) > np.linalg.norm(wobble):
+            # Handle wobble by precession of angular velocity. Torque is handled as presession of Q, not angular acc.
+            delta_moment = self.model.I_zz - self.model.I_xx
+            acc += delta_moment / i_xx * 2 * wz * np.array([-wy, wx, 0])
+        else:
+            pitching_moment = self.model.C_y(aoa)
+            rolling_moment = self.model.C_x(aoa, v_norm, wz)
+            acc += np.array([rolling_moment, pitching_moment, 0]) * torque / i_xx
 
         res["T"] = acc
 
@@ -179,7 +190,7 @@ class EOM:
                 result["dq"][3],
                 result["T"][0],  # x component of ang. acc.
                 result["T"][1],  # y component of ang. acc.
-                result["T"][2],  # gamma component of ang. acc.
+                result["T"][2],  # gamma component of ang. acc. (only a dammpening factor)
             ]
         )
         return derivatives
