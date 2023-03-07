@@ -8,6 +8,7 @@ from scipy.spatial.transform import Rotation
 class ThrowData:
     # versions
     ADD_SECONDS_SINCE_THROW_VERSION = 2
+    ADD_CRC_CHECK = 3;
     CHANGE_DPS_4K_8K = 5;
     CURRENT_THROW_FORMAT_VERSION = CHANGE_DPS_4K_8K
 
@@ -19,7 +20,7 @@ class ThrowData:
     OUTPUT_SCALE_FACTOR_4000DPS = (SENSORS_DPS_TO_RADS * 4000 / ((1 << 15) - 1))
     OUTPUT_SCALE_FACTOR_8000DPS = (SENSORS_DPS_TO_RADS * 8000 / ((1 << 15) - 1))
 
-    version: int
+    formatVersion: int
     durationMicros: list[int]
     accel0: list[np.ndarray]
     gyros: list[np.ndarray]
@@ -40,12 +41,12 @@ class ThrowData:
 
 
     @staticmethod
-    def readSignedByte() -> int:
+    def readSignedByte(f) -> int:
         buf = f.read(1)
         return struct.unpack('<b', buf)[0]
 
     @staticmethod
-    def readUnsignedByte() -> int:
+    def readUnsignedByte(f) -> int:
         buf = f.read(1)
         return struct.unpack('<B', buf)[0]
 
@@ -82,11 +83,11 @@ class ThrowData:
         hardwareVersion = ThrowData.readUnsignedByte(f)
         startIndex = ThrowData.readUnsignedShort(f)
         secondsSinceThrow = ThrowData.readUnsignedShort(f)
-        if formatVersion < ADD_SECONDS_SINCE_THROW_VERSION:
+        if formatVersion < ThrowData.ADD_SECONDS_SINCE_THROW_VERSION:
             secondsSinceThrow = 0;
         dataType = ThrowData.readUnsignedByte(f)
-        numPoints = di.readUnsignedByte() * 100;
-        if formatVersion < ADD_CRC_CHECK or numPoints == 0:
+        numPoints = ThrowData.readUnsignedByte(f) * 100;
+        if formatVersion < ThrowData.ADD_CRC_CHECK or numPoints == 0:
             numPoints = ThrowData.NUM_POINTS
         durationMicros = [None] * numPoints
         for i in range(numPoints):
@@ -114,4 +115,4 @@ class ThrowData:
         qz = ThrowData.readFloat(f)
         rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
         temp = ThrowData.readFloat(f)
-        return ThrowData(version, durationMicros, accel0, gyros, accel1, accel2, rotation, temp, dataType)
+        return ThrowData(formatVersion, durationMicros, accel0, gyros, accel1, accel2, rotation, temp, dataType)

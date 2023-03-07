@@ -8,7 +8,7 @@ from frispy import ThrowData
 
 #flight: ThrowData = ThrowData.readFile("condor.throw")
 #flight: ThrowData = ThrowData.readFile("great.throw")
-flight: ThrowData = ThrowData.readFile("busted_accel_6.throw")
+flight: ThrowData = ThrowData.readFile("../1677951471.throw")
 RADIUS_ACCEL = 0.01778 # 0.700 inches in m
 
 time = [0] * ThrowData.NUM_POINTS
