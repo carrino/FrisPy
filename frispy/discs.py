@@ -112,7 +112,7 @@ class Discs:
         weight = min(0.180, weight)
         weight = max(0, weight)
 
-        glide = min(7, glide)
+        glide = min(6, glide)
         glide = max(0, glide)
 
         cl0 = Discs.cl0FromGlide(glide)

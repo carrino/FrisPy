@@ -6,6 +6,7 @@ from typing import Optional
 
 import numpy as np
 
+from frispy.wind import Wind, NoWind
 
 class Environment:
     """
@@ -33,10 +34,12 @@ class Environment:
         # air_density: float = 1.1455, # hot 35C -> 95F
         g: float = 9.80665,
         grav_vector: Optional[np.ndarray] = None,
+        wind: Wind = NoWind(),
     ):
         self._air_density = air_density
         self._g = g
         self._grav_vector = grav_vector or np.array([0.0, 0.0, -1.0])
+        self._wind = wind
 
     @property
     def air_density(self) -> float:
@@ -49,4 +52,8 @@ class Environment:
     @property
     def grav_vector(self) -> np.ndarray:
         return self._grav_vector
+
+    @property
+    def wind(self) -> Wind:
+        return self._wind
 

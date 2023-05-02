@@ -66,9 +66,11 @@ class Disc:
         self,
         model: Optional[Model] = None,
         initial_conditions: Optional[Dict[str, float]] = None,
+        environment: Optional[Environment] = None,
     ):
         self._model = model or Model()
-        self._eom = EOM(model=self._model)
+        self._environment = environment or Environment()
+        self._eom = EOM(model=self._model, environment=self._environment)
         self.set_default_initial_conditions(initial_conditions)
         self.reset_initial_conditions()
 
@@ -246,5 +248,8 @@ class Disc:
 
     @property
     def model(self) -> Model:
-        print(self._model)
         return self._model
+
+    @property
+    def environment(self) -> Environment:
+        return self._environment
