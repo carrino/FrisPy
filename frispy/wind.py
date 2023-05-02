@@ -33,7 +33,7 @@ class NoWind(Wind):
     No wind.
     """
 
-    def get_wind(self, *args) -> np.ndarray:
+    def get_wind_vector(self, *args) -> np.ndarray:
         """
         All components are zero.
         """
@@ -47,22 +47,10 @@ class ConstantWind(Wind):
 
     def __init__(
         self,
-        vx: Optional[float] = None,
-        vy: Optional[float] = None,
-        vz: Optional[float] = None,
-        wind_vector: Optional[np.ndarray] = None,
+        wind_vector: np.ndarray,
     ):
         super().__init__()
-        assert any(
-            (vx, vy, vz, wind_vector)
-        ), "must provide at least one wind component"
-        if wind_vector is not None:
-            assert not any(
-                (vx, vy, vz)
-            ), "cannot provide `wind_vector` and individual components"
-            self._wind_vector = wind_vector
-        else:
-            self._wind_vector = np.zeros([vx or 0, vy or 0, vz or 0])
+        self._wind_vector = wind_vector
 
     def get_wind_vector(self, *args) -> np.ndarray:
         return self._wind_vector

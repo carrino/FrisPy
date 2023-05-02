@@ -7,8 +7,8 @@ from scipy.optimize import minimize
 import numpy as np
 
 
-from frispy import Disc
-from frispy import Discs
+from frispy import Disc, Discs, Environment
+from frispy.wind import ConstantWind
 
 mph_to_mps = 0.44704
 v = 60 * mph_to_mps # what is the optimal disc for 60mph
@@ -17,11 +17,15 @@ a = 10
 nose_up = -3
 hyzer = 10
 
+wind = ConstantWind(np.array([0, 0, 0]))
+
 def distance(x):
     speed, glide, turn = x
     model = Discs.from_flight_numbers({"glide": glide, "speed": speed, "turn": turn})
     d = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v,
-                     "nose_up": nose_up, "hyzer": hyzer})
+                     "nose_up": nose_up, "hyzer": hyzer},
+             Environment(wind=wind)
+             )
     r = d.compute_trajectory(20.0, **{"max_step": .2})
     rx = r.x[-1]
     array = r.y

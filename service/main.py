@@ -1,8 +1,10 @@
 import math
 import os
 
+import numpy as np
 from flask import Flask, request
-from frispy import Disc, Discs
+from frispy import Disc, Discs, Environment
+from frispy.wind import ConstantWind
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -59,10 +61,29 @@ def flight_path_helper(content):
     if "gamma" in content:
         gamma = content["gamma"]
 
+    # m/s
+    wind_speed = 0
+    if "wind_speed" in content:
+        wind_speed = content["wind_speed"]
+
+    # 0 wind angle means tail wind, 90 deg is left to right
+    # radians
+    wind_angle = 0
+    if "wind_angle" in content:
+        wind_angle = content["wind_angle"]
+
+    wind = ConstantWind(np.array([math.cos(wind_angle), math.sin(wind_angle), 0]) * wind_speed)
+
+    # measured in kg/m^3
+    air_density = 1.225  # 15C / 59F
+    if "air_density" in content:
+        air_density = content["air_density"]
+
     a = content['uphill_degrees'] * math.pi / 180
     hyzer = content['hyzer_degrees']
     nose_up = content['nose_up_degrees']
-    disc = Disc(model, {"vx": math.cos(a) * v,
+    disc = Disc(model,
+                {"vx": math.cos(a) * v,
                         "dgamma": spin,
                         "dphi": wx,
                         "dtheta": wy,
@@ -70,7 +91,8 @@ def flight_path_helper(content):
                         "z": z,
                         "nose_up": nose_up,
                         "hyzer": hyzer
-    })
+                },
+                environment=Environment(wind=wind, air_density=air_density))
 
     hz = abs(spin) / math.pi / 2
     # In order to get a smooth output for the rotation of the disc

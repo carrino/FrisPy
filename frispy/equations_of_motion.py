@@ -7,6 +7,7 @@ from frispy.environment import Environment
 from frispy.model import Model
 from scipy.spatial.transform import Rotation
 
+
 class EOM:
     """
     ``EOM`` is short for "equations of motion" is used to run the ODE solver
@@ -16,9 +17,9 @@ class EOM:
     """
 
     def __init__(
-        self,
-        environment: Environment = Environment(),
-        model: Model = Model(),
+            self,
+            environment: Environment = Environment(),
+            model: Model = Model(),
     ):
         self._environment = environment
         self._model = model
@@ -32,10 +33,10 @@ class EOM:
         return self._model
 
     def compute_forces(
-        self,
-        rotation: Rotation,
-        velocity: np.ndarray,
-        ang_velocity: np.ndarray,
+            self,
+            rotation: Rotation,
+            velocity: np.ndarray,
+            ang_velocity: np.ndarray,
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
         """
         Compute the lift, drag, and gravitational forces on the disc.
@@ -48,16 +49,16 @@ class EOM:
         v_norm = np.linalg.norm(velocity)
         vhat = velocity / v_norm
         force_amplitude = (
-            0.5
-            * self.environment.air_density
-            * (velocity @ velocity)
-            * self.model.area
+                0.5
+                * self.environment.air_density
+                * (velocity @ velocity)
+                * self.model.area
         )
         # Compute the lift and drag forces
         res["F_lift"] = (
-            self.model.C_lift(aoa)
-            * force_amplitude
-            * np.cross(vhat, res["unit_vectors"]["yhat"])
+                self.model.C_lift(aoa)
+                * force_amplitude
+                * np.cross(vhat, res["unit_vectors"]["yhat"])
         )
         res["F_side"] = (
                 self.model.C_side(aoa, v_norm, ang_velocity[2])
@@ -67,29 +68,29 @@ class EOM:
         res["F_drag"] = self.model.C_drag(aoa) * force_amplitude * (-vhat)
         # Compute gravitational force
         res["F_grav"] = (
-            self.model.mass
-            * self.environment.g
-            * self.environment.grav_vector
+                self.model.mass
+                * self.environment.g
+                * self.environment.grav_vector
         )
         res["F_total"] = res["F_lift"] + res["F_drag"] + res["F_grav"] + res["F_side"]
         res["Acc"] = res["F_total"] / self.model.mass
         return res
 
     def compute_torques(
-        self,
-        velocity: np.ndarray,
-        ang_velocity: np.ndarray,
-        rotation: Rotation,
-        res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
+            self,
+            velocity: np.ndarray,
+            ang_velocity: np.ndarray,
+            rotation: Rotation,
+            res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
 
         aoa = res["angle_of_attack"]
         res["torque_amplitude"] = (
-            0.5
-            * self.environment.air_density
-            * (velocity @ velocity)
-            * self.model.diameter
-            * self.model.area
+                0.5
+                * self.environment.air_density
+                * (velocity @ velocity)
+                * self.model.diameter
+                * self.model.area
         )
 
         i_xx = self.model.I_xx
@@ -149,7 +150,7 @@ class EOM:
         res["T"] = acc
 
     def compute_derivatives(
-        self, time: float, coordinates: np.ndarray
+            self, time: float, coordinates: np.ndarray
     ) -> np.ndarray:
         """
         Right hand side of the ordinary differential equations. This is
@@ -170,7 +171,11 @@ class EOM:
           derivatives of all coordinates
         """
         x, y, z, vx, vy, vz, qx, qy, qz, qw, dphi, dtheta, dgamma = coordinates
+        position = np.array([x, y, z])
+        wind = self.environment.wind
+        windVector = wind.get_wind_vector(time, position)
         velocity = np.array([vx, vy, vz])
+        velocity -= windVector
         rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
         # angular velocity is defined relative to the disc
         ang_velocity = np.array([dphi, dtheta, dgamma])
@@ -199,7 +204,6 @@ class EOM:
     def expand_quaternion(qx: float, qy: float, qz: float, qw: float) -> Rotation:
         vector = np.array([qx, qy, qz, qw])
         return Rotation.from_quat(vector)
-
 
     @staticmethod
     def calculate_intermediate_quantities(

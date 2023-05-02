@@ -66,10 +66,10 @@ class Disc:
         self,
         model: Optional[Model] = None,
         initial_conditions: Optional[Dict[str, float]] = None,
-        environment: Optional[Environment] = None,
+        environment: Environment = Environment(),
     ):
         self._model = model or Model()
-        self._environment = environment or Environment()
+        self._environment = environment
         self._eom = EOM(model=self._model, environment=self._environment)
         self.set_default_initial_conditions(initial_conditions)
         self.reset_initial_conditions()
