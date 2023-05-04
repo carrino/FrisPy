@@ -66,7 +66,7 @@ def flight_path_helper(content):
     if "wind_speed" in content:
         wind_speed = content["wind_speed"]
 
-    # 0 wind angle means tail wind, 90 deg is left to right
+    # 0 wind angle means tail wind, 90 deg is right to left
     # radians
     wind_angle = 0
     if "wind_angle" in content:
