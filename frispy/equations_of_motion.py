@@ -47,7 +47,9 @@ class EOM:
         res = EOM.calculate_intermediate_quantities(rotation, velocity, ang_velocity)
         aoa = res["angle_of_attack"]
         v_norm = np.linalg.norm(velocity)
-        vhat = velocity / v_norm
+        vhat = np.array([1, 0, 0])
+        if v_norm > math.ulp(1):
+            vhat = velocity / v_norm
         force_amplitude = (
                 0.5
                 * self.environment.air_density
@@ -224,11 +226,13 @@ class EOM:
         zhat = R @ np.array([0, 0, 1])
         v_dot_zhat = velocity @ zhat
         v_in_plane = velocity - zhat * v_dot_zhat
-        xhat = v_in_plane / np.linalg.norm(v_in_plane)
-        yhat = np.cross(zhat, xhat)
 
-        # Angle of attack
-        angle_of_attack = -np.arctan(v_dot_zhat / np.linalg.norm(v_in_plane))
+        xhat = np.array([1, 0, 0])
+        angle_of_attack = 0
+        if np.linalg.norm(v_in_plane) > math.ulp(1.0):
+            xhat = v_in_plane / np.linalg.norm(v_in_plane)
+            angle_of_attack = -np.arctan(v_dot_zhat / np.linalg.norm(v_in_plane))
+        yhat = np.cross(zhat, xhat)
 
         # wobble is only the in x and y axis relative to zhat
         w = R @ np.array([ang_velocity[0], ang_velocity[1], 0])
