@@ -26,7 +26,7 @@ class FrisPyResults:
         "qy",
         "qz",
         "qw",
-        "dphi", # phi is rotation around X axis aka anhyzer
+        "dphi", # phi is rotation around X axis aka anhyzer for backhand
         "dtheta", # theta is rotation around Y aka nose_down
         "dgamma", # gamma is rotation around Z
         "phi",
