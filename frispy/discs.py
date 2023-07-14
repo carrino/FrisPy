@@ -109,7 +109,8 @@ class Discs:
         speed = min(14, speed)
         speed = max(0, speed)
 
-        weight = min(0.180, weight)
+        # handle up to 2kg for discus
+        weight = min(2, weight)
         weight = max(0, weight)
 
         glide = min(6, glide)
