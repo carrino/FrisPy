@@ -61,6 +61,10 @@ def flight_path_helper(content):
     if "gamma" in content:
         gamma = content["gamma"]
 
+    flight_max_seconds: float = 15.0
+    if "flight_max_seconds" in content:
+        flight_max_seconds = content["flight_max_seconds"]
+
     # m/s
     wind_speed = 0
     if "wind_speed" in content:
@@ -100,7 +104,7 @@ def flight_path_helper(content):
     max_step = 0.1
     if hz > 4.5:
       max_step = 0.45 / hz
-    result = disc.compute_trajectory(30, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
+    result = disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
     res = {
         'p': result.pos,
         't': [i.tolist() for i in result.times],
