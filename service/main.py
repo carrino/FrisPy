@@ -1,11 +1,16 @@
 import math
 import os
+import logging
 
 import numpy as np
 from flask import Flask, request
 from frispy import Disc, Discs, Environment
 from frispy.wind import ConstantWind
 from flask_cors import CORS
+
+# import google.cloud.logging
+# client = google.cloud.logging.Client()
+# client.setup_logging()
 
 app = Flask(__name__)
 CORS(app)
@@ -103,19 +108,23 @@ def flight_path_helper(content):
     # we need to have enough samples to spin in the correct direction
     max_step = 0.1
     if hz > 4.5:
-      max_step = 0.45 / hz
+        max_step = 0.45 / hz
     result = disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
-    res = {
-        'p': result.pos,
-        't': [i.tolist() for i in result.times],
-        'v': [i.tolist() for i in result.v],
-        'qx': result.qx.tolist(),
-        'qy': result.qy.tolist(),
-        'qz': result.qz.tolist(),
-        'qw': result.qw.tolist(),
-        'gamma': [i + gamma for i in result.gamma],
-    }
-    return res
+    try:
+        res = {
+            'p': result.pos,
+            't': [i.tolist() for i in result.times],
+            'v': [i.tolist() for i in result.v],
+            'qx': result.qx.tolist(),
+            'qy': result.qy.tolist(),
+            'qz': result.qz.tolist(),
+            'qw': result.qw.tolist(),
+            'gamma': [i + gamma for i in result.gamma],
+        }
+        return res
+    except Exception as e:
+        logging.error("failed to process flight", e, content, result)
+        raise
 
 
 @app.route("/")
