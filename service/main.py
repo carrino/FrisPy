@@ -68,7 +68,7 @@ def flight_path_helper(content):
 
     flight_max_seconds: float = 15.0
     if "flight_max_seconds" in content:
-        flight_max_seconds = content["flight_max_seconds"]
+        flight_max_seconds = min(content["flight_max_seconds"], flight_max_seconds)
 
     # m/s
     wind_speed = 0
