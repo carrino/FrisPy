@@ -162,7 +162,7 @@ class Disc:
 
             return fpr
         except Exception as e:
-            logging.error("failed to parse results of ivp", e, pformat(result))
+            logging.error("failed to parse results of ivp e: %s result: %s", e, pformat(result))
             raise
 
     def reset_initial_conditions(self) -> None:
