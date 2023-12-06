@@ -2,7 +2,6 @@ import math
 import logging
 import numpy as np
 from typing import Dict, List, Optional
-from pprint import pformat
 
 from scipy.integrate import solve_ivp
 from scipy.spatial.transform import Rotation
@@ -166,7 +165,7 @@ class Disc:
 
             return fpr
         except Exception as e:
-            logging.error("failed to parse results of ivp e: %s result: %s", e, pformat(result))
+            logging.error("failed to parse results of ivp e: %s result: %s", e, result)
             raise
 
     def reset_initial_conditions(self) -> None:

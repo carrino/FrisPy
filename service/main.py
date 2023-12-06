@@ -1,7 +1,6 @@
 import math
 import os
 import logging
-from pprint import pformat
 
 import numpy as np
 from flask import Flask, request
@@ -125,7 +124,7 @@ def flight_path_helper(content):
         }
         return res
     except Exception as e:
-        logging.error("failed to process flight e: %s, content: %s, result: %s", e, content, pformat(result))
+        logging.error("failed to process flight e: %s, content: %s, result: %s", e, content, result)
         raise
 
 
