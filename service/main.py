@@ -112,20 +112,27 @@ def flight_path_helper(content):
     result = None
     try:
         result = disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
-        res = {
-            'p': result.pos,
-            't': [i.tolist() for i in result.times],
-            'v': [i.tolist() for i in result.v],
-            'qx': result.qx.tolist(),
-            'qy': result.qy.tolist(),
-            'qz': result.qz.tolist(),
-            'qw': result.qw.tolist(),
-            'gamma': [i + gamma for i in result.gamma],
-        }
-        return res
+        return to_result(gamma, result)
     except Exception as e:
         logging.error("failed to process flight e: %s, content: %s, result: %s", e, content, result)
-        raise
+
+        # add retry on exception
+        result = disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
+        return to_result(gamma, result)
+
+
+def to_result(gamma, result):
+    res = {
+        'p': result.pos,
+        't': [i.tolist() for i in result.times],
+        'v': [i.tolist() for i in result.v],
+        'qx': result.qx.tolist(),
+        'qy': result.qy.tolist(),
+        'qz': result.qz.tolist(),
+        'qw': result.qw.tolist(),
+        'gamma': [i + gamma for i in result.gamma],
+    }
+    return res
 
 
 @app.route("/")
