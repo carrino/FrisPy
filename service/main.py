@@ -112,6 +112,7 @@ def flight_path_helper(content):
     result = None
     try:
         result = disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
+        logging.warning("DEBUG: result found. input: %s, result: %s", content, result)
         return to_result(gamma, result)
     except Exception as e:
         logging.error("failed to process flight e: %s, content: %s, result: %s", e, content, result)
