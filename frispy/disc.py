@@ -41,6 +41,10 @@ class FrisPyResults:
         "aoa",  # angle of attack
     ]
 
+    def __str__(self):
+        attr_values = {attr: getattr(self, attr, None) for attr in self.__slots__}
+        return f"FrisPyResults({attr_values})"
+
 
 class Disc:
     """Flying spinning disc object. The disc object contains only physical
