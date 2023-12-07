@@ -45,6 +45,7 @@ class FrisPyResults:
         return f"FrisPyResults({attr_values})"
 
 
+
 class Disc:
     """Flying spinning disc object. The disc object contains only physical
     parameters of the disc and environment that it exists (e.g. gravitational
@@ -124,7 +125,7 @@ class Disc:
 
         try:
             # Create the results object
-            fpr = FrisPyResults
+            fpr = FrisPyResults()
             fpr.times = result.t
             for i, key in enumerate(self.ordered_coordinate_names):
                 setattr(fpr, key, result.y[i])
