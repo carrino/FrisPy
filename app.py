@@ -16,7 +16,7 @@ class IncomingHandler(IncomingHandler):
             bytes("Hello from Python!", "utf-8")
         )
 
-    def flight_path_helper(content):
+    def flight_path_helper(self, content):
         model = Discs.from_string(content.get('disc_name'))
         if not model:
             model = Discs.from_flight_numbers(content['flight_numbers'])
