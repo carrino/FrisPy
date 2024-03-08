@@ -23,3 +23,8 @@ dist
 .*.swp
 .*.swo
 .*.swn
+
+__pycache__
+*.wasm
+.spin
+venv/

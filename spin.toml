@@ -1,0 +1,17 @@
+spin_manifest_version = 2
+
+[application]
+authors = ["John Carrino <john.carrino@gmail.com>"]
+description = ""
+name = "spin-frispy"
+version = "0.1.0"
+
+[[trigger.http]]
+route = "/..."
+component = "spin-frispy"
+
+[component.spin-frispy]
+source = "app.wasm"
+[component.spin-frispy.build]
+command = "componentize-py -w spin-http componentize app -o app.wasm"
+watch = ["*.py", "requirements.txt"]
