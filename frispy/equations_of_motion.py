@@ -40,9 +40,6 @@ class EOM:
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
         """
         Compute the lift, drag, and gravitational forces on the disc.
-
-        Args:
-        TODO
         """
         res = EOM.calculate_intermediate_quantities(rotation, velocity, ang_velocity)
         aoa = res["angle_of_attack"]
@@ -85,6 +82,9 @@ class EOM:
             rotation: Rotation,
             res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
+        """
+        Compute the turn, gyroscopic precession, and wobble dampening
+        """
 
         aoa = res["angle_of_attack"]
         res["torque_amplitude"] = (
@@ -105,7 +105,7 @@ class EOM:
         wobble = res["w"]
         w = wobble
         if abs(wz) > np.linalg.norm(wobble):
-            # handle torque as a gyroscopic presession, instead of a change to angular velocity
+            # Turn is created by the pitching moment
             pitching_moment = self.model.C_y(aoa)
             rolling_moment = self.model.C_x(aoa, v_norm, wz)
             roll = pitching_moment * torque * res["unit_vectors"]["xhat"]
@@ -130,13 +130,16 @@ class EOM:
             res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
             aoa: float,
             v_norm: float):
+        """
+        Compute the gyroscopic precession, spindown, and wobble dampening
+        """
         i_xx = self.model.I_xx
         i_zz = self.model.I_zz
         wx, wy, wz = ang_velocity
 
         # Dampen angular velocity
-        dampening = self.model.dampening_factor
-        dampening_z = self.model.dampening_z
+        dampening = self.model.dampening_factor # wobble dampening
+        dampening_z = self.model.dampening_z # spindown
         acc = np.array([wx * dampening / i_xx, wy * dampening / i_xx, wz * dampening_z / i_zz]) * torque
 
         wobble = res["w"]
@@ -159,11 +162,6 @@ class EOM:
         supplied to :meth:`scipy.integrate.solve_ivp`. See `this page
         <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html#scipy.integrate.solve_ivp>`_
         for more information about its `fun` argument.
-
-        .. todo::
-
-           Implement the disc hitting the ground as a (Callable) scipy
-           event object.
 
         Args:
           time (float): instantanious time of the system
@@ -216,9 +214,6 @@ class EOM:
         """
         Compute intermediate quantities on the way to computing the time
         derivatives of the kinematic variables.
-
-        Args:
-        TODO
         """
         # Rotation matrix
         R = rotation.as_matrix()
