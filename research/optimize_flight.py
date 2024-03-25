@@ -21,7 +21,7 @@ def distance(x):
     d = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v,
                      "nose_up": nose_up, "hyzer": hyzer},
                      Environment(wind=wind))
-    r = d.compute_trajectory(20.0, **{"max_step": .2})
+    r = d.compute_trajectory(6.0, **{"max_step": .2})
     rx = r.x[-1]
     return -rx
 
@@ -34,7 +34,7 @@ disc = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": 
                  "nose_up": nose_up, "hyzer": hyzer},
                  Environment(wind=wind))
 
-result = disc.compute_trajectory(20.0, **{"max_step": .2})
+result = disc.compute_trajectory(5.0, **{"max_step": .2})
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 

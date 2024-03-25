@@ -75,11 +75,15 @@ def flight_path_helper(content):
     if "wind_speed" in content:
         wind_speed = content["wind_speed"]
 
-    # 0 wind angle means tail wind, 90 deg is right to left
     # radians
     wind_angle = 0
     if "wind_angle" in content:
         wind_angle = content["wind_angle"]
+
+    # 0 wind angle means tail wind, 90 deg is right to left
+    # yes, This is opposite of bearing, but frispy uses NWU instead of NED
+    if "wind_angle_degrees" in content:
+        wind_angle = content["wind_angle_degrees"] * math.pi / 180
 
     wind = ConstantWind(np.array([math.cos(wind_angle), math.sin(wind_angle), 0]) * wind_speed)
 
@@ -87,6 +91,10 @@ def flight_path_helper(content):
     air_density = 1.225  # 15C / 59F
     if "air_density" in content:
         air_density = content["air_density"]
+
+    groundPlayEnabled = False
+    if "ground_play_enabled" in content:
+        groundPlayEnabled = content["ground_play_enabled"]
 
     a = content['uphill_degrees'] * math.pi / 180
     hyzer = content['hyzer_degrees']
@@ -101,7 +109,7 @@ def flight_path_helper(content):
                         "nose_up": nose_up,
                         "hyzer": hyzer
                 },
-                environment=Environment(wind=wind, air_density=air_density))
+                environment=Environment(wind=wind, air_density=air_density, ground_play_enabled=groundPlayEnabled))
 
     hz = abs(spin) / math.pi / 2
     # In order to get a smooth output for the rotation of the disc

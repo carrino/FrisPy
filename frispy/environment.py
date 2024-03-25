@@ -35,11 +35,13 @@ class Environment:
         g: float = 9.80665,
         grav_vector: Optional[np.ndarray] = None,
         wind: Wind = NoWind(),
+        ground_play_enabled: bool = False,
     ):
         self._air_density = air_density
         self._g = g
         self._grav_vector = grav_vector or np.array([0.0, 0.0, -1.0])
         self._wind = wind
+        self._ground_play_enabled = ground_play_enabled
 
     @property
     def air_density(self) -> float:
@@ -57,3 +59,7 @@ class Environment:
     def wind(self) -> Wind:
         return self._wind
 
+    # None means disabled
+    @property
+    def groundPlayEnabled(self) -> bool:
+        return self._ground_play_enabled

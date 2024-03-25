@@ -113,7 +113,17 @@ class Disc:
         else:
             t_span = (0, flight_time)
 
-        def hit_ground(t, y): return y[2]
+        def hit_ground(t, y):
+            z = y[2]
+            vx = y[3]
+            vy = y[4]
+            vz = y[5]
+            if not self.environment.groundPlayEnabled:
+                # ground play is disabled
+                return z
+            v_norm = np.linalg.norm([vx, vy, vz])
+            # once the disc slows down to below 1cm/s, we end the simulation
+            return v_norm - 0.01
         hit_ground.terminal = True
         result = solve_ivp(
             fun=self.eom.compute_derivatives,

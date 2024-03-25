@@ -2,6 +2,7 @@ import math
 from pprint import pprint
 import numpy as np
 import time
+from frispy.environment import Environment
 
 
 import matplotlib.pyplot as plt
@@ -11,13 +12,12 @@ from frispy import Disc
 from frispy import Model
 from frispy import Discs
 
-model = Discs.destroyer
-#v = 54.5 * 0.44704
-v = 24.36
+model = Discs.stable_destroyer
+v = 60 * 0.44704
 rot = -133.7
-nose_up = 1.15
+nose_up = -1.15
 hyzer = 7.8
-uphill = 2.79
+uphill = 8
 wx = -13.2
 wy = -8.88
 gamma = -1.135
@@ -37,15 +37,17 @@ degrees = math.atan(wx/rot/2) * 180 / math.pi
 # theta is nose down (pitch around Y axis)
 
 start = time.perf_counter()
+env: Environment = Environment()
+env._ground_play_enabled = True
 disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(uphill * math.pi / 180) * v,
-                    "nose_up": nose_up, "hyzer": hyzer, "dphi": wx, "dtheta": wy, "gamma": gamma})
+                    "nose_up": nose_up, "hyzer": hyzer, "dphi": wx, "dtheta": wy, "gamma": gamma}, env)
 
 hz = abs(rot) / math.pi / 2
 # In order to get a smooth output for the rotation of the disc
 # we need to have enough samples to spin in the correct direction
 max_step = 0.45 / hz
 #result = disc.compute_trajectory(30, **{"max_step": 1, "rtol": 1e-3, "atol": 1e-5})
-result = disc.compute_trajectory(15, **{"max_step": max_step, "rtol": 5e-4, "atol": 5e-6})
+result = disc.compute_trajectory(10.0, **{"max_step": max_step, "rtol": 5e-4, "atol": 5e-6})
 
 duration = time.perf_counter() - start
 pprint(duration)
@@ -62,6 +64,7 @@ t, x, y, z = result.times, result.x, result.y, result.z
 #plt.plot(t, [i / math.pi * 180 for i in result.aoa])
 
 
+#plt.plot(t, result.x)
 plt.plot(t, result.y)
 plt.plot(t, result.z)
 
