@@ -118,12 +118,14 @@ class Disc:
             vx = y[3]
             vy = y[4]
             vz = y[5]
+            wz = y[12]
             if not self.environment.groundPlayEnabled:
                 # ground play is disabled
                 return z
             v_norm = np.linalg.norm([vx, vy, vz])
-            # once the disc slows down to below 1cm/s, we end the simulation
-            return v_norm - 0.01
+            # once the disc slows down to below 1mm/s, we end the simulation
+            return v_norm - 0.001
+            #return math.fabs(wz) + v_norm - 0.01
         hit_ground.terminal = True
         result = solve_ivp(
             fun=self.eom.compute_derivatives,

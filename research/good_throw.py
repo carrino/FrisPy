@@ -13,10 +13,11 @@ from frispy import Model
 from frispy import Discs
 
 model = Discs.stable_destroyer
-v = 60 * 0.44704
+#model = Discs.destroyer
+v = 54 * 0.44704
 rot = -133.7
 nose_up = -1.15
-hyzer = 7.8
+hyzer = 20
 uphill = 8
 wx = -13.2
 wy = -8.88
@@ -47,7 +48,7 @@ hz = abs(rot) / math.pi / 2
 # we need to have enough samples to spin in the correct direction
 max_step = 0.45 / hz
 #result = disc.compute_trajectory(30, **{"max_step": 1, "rtol": 1e-3, "atol": 1e-5})
-result = disc.compute_trajectory(10.0, **{"max_step": max_step, "rtol": 5e-4, "atol": 5e-6})
+result = disc.compute_trajectory(30.0, **{"max_step": max_step, "rtol": 5e-4, "atol": 5e-7})
 
 duration = time.perf_counter() - start
 pprint(duration)
@@ -64,9 +65,10 @@ t, x, y, z = result.times, result.x, result.y, result.z
 #plt.plot(t, [i / math.pi * 180 for i in result.aoa])
 
 
-#plt.plot(t, result.x)
+plt.plot(t, result.x)
 plt.plot(t, result.y)
 plt.plot(t, result.z)
+plt.plot(t, result.dgamma)
 
 
 #plt.plot(t, result.y)
