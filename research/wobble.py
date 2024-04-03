@@ -13,7 +13,7 @@ nose_up = 0
 hyzer = 10
 uphill = 10
 rotation_factor = 0
-rotation_factor = 1 / 5
+rotation_factor = 1 / 10
 
 dphi = 0
 dtheta = 0
@@ -33,12 +33,12 @@ disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "
                     #"nose_up": nose_up, "hyzer": hyzer})
 
 #result = disc.compute_trajectory(20)
-result = disc.compute_trajectory(1, **{"max_step": .5, "rtol": 5e-4, "atol": 1e-6})
+result = disc.compute_trajectory(3, **{"max_step": .5, "rtol": 5e-4, "atol": 1e-6})
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 
 #plt.plot(x, y)
-#plt.plot(x, z)
+plt.plot(t, z)
 
 #plt.plot(t, result.dphi)
 #plt.plot(t, result.dtheta)

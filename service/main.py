@@ -62,6 +62,8 @@ def flight_path_helper(content):
     if "z" in content:
         z = content["z"]
 
+    # gamma is the position of the disc around the z axis
+    # wx and wy are in the disc's frame of reference
     gamma = 0
     if "gamma" in content:
         gamma = content["gamma"]
@@ -107,7 +109,8 @@ def flight_path_helper(content):
                         "vz": math.sin(a) * v,
                         "z": z,
                         "nose_up": nose_up,
-                        "hyzer": hyzer
+                        "hyzer": hyzer,
+                        "gamma": gamma,
                 },
                 environment=Environment(wind=wind, air_density=air_density, ground_play_enabled=groundPlayEnabled))
 

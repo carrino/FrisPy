@@ -206,6 +206,7 @@ class Disc:
             "dphi": 0,
             "dtheta": 0,
             "dgamma": -120.0, # spin, negative is RHBH or clockwise from above
+            "gamma": 0,
         }
         for i in base_ICs:
             if initial_conditions is not None and i in initial_conditions:
@@ -216,7 +217,7 @@ class Disc:
             anhyzer = initial_conditions["hyzer"] * math.pi / 180 * math.copysign(1, initial_conditions["dgamma"])
 
         downhill = math.atan2(-base_ICs["vz"], base_ICs["vx"])
-        nose_down = 0;
+        nose_down = 0
         if initial_conditions is not None and "nose_up" in initial_conditions:
             nose_down -= initial_conditions["nose_up"] * math.pi / 180
 
@@ -248,6 +249,7 @@ class Disc:
             "dphi",
             "dtheta",
             "dgamma",
+            "gamma", # break spin out because q wraps after 2pi and we want a running spin
         ]
 
     @property
@@ -257,7 +259,7 @@ class Disc:
     @property
     def initial_conditions_as_ordered_list(self) -> List:
         return [
-            self.initial_conditions[key] for key in self.ordered_coordinate_names
+            (self.initial_conditions[key] or 0) for key in self.ordered_coordinate_names
         ]
 
     @property

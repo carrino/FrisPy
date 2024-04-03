@@ -39,11 +39,12 @@ class EOM:
             airVelocity: np.ndarray,
             velocity: np.ndarray,
             ang_velocity: np.ndarray,
+            gamma: float = 0,
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
         """
         Compute the lift, drag, and gravitational forces on the disc.
         """
-        res = EOM.calculate_intermediate_quantities(rotation, airVelocity, ang_velocity)
+        res = EOM.calculate_intermediate_quantities(rotation, velocity, ang_velocity, gamma)
         aoa = res["angle_of_attack"]
         v_norm = np.linalg.norm(airVelocity)
         vhat = np.array([1, 0, 0])
@@ -55,11 +56,17 @@ class EOM:
                 * (airVelocity @ airVelocity)
                 * self.model.area
         )
+
+        zhat = res["unit_vectors"]["zhat"]
+        lift_direction = zhat - np.dot(zhat, vhat) * vhat
+        if np.linalg.norm(lift_direction) > math.ulp(1):
+            lift_direction /= np.linalg.norm(lift_direction)
+
         # Compute the lift and drag forces
         res["F_lift"] = (
                 self.model.C_lift(aoa)
                 * force_amplitude
-                * np.cross(vhat, res["unit_vectors"]["yhat"])
+                * lift_direction
         )
         wz = ang_velocity[2]
         res["F_side"] = (
@@ -94,7 +101,7 @@ class EOM:
         f_spring = np.array([0, 0, 0])
         f_ground_drag = np.array([0, 0, 0])
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
-            spring_multiplier = -dist_from_ground * 1000 # 1g per mm
+            spring_multiplier = -dist_from_ground * 100 # 1g per mm
             ground_drag_constant = 0.5 # TODO: add a ground drag parameter to the environment
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
@@ -144,28 +151,28 @@ class EOM:
 
 
         w = res["w"]
-        xhat = res["unit_vectors"]["xhat"]
-        yhat = res["unit_vectors"]["yhat"]
-        zhat = res["unit_vectors"]["zhat"]
+        #xhat = res["unit_vectors"]["xhat"]
+        #yhat = res["unit_vectors"]["yhat"]
+        #zhat = res["unit_vectors"]["zhat"]
 
-        if abs(wz) > np.linalg.norm(w):
-            # Turn is created by the pitching moment
-            # We just modify angular velocity directly and pass it to the quaternion derivative
-            pitching_moment = self.model.C_y(aoa)
-            rolling_moment = self.model.C_x(aoa, v_norm, wz)
-            roll = pitching_moment * torque * xhat
-            pitch_up = rolling_moment * torque * -yhat
-            w += (roll + pitch_up) / (i_zz * wz)
+        # if abs(wz) > np.linalg.norm(w):
+        #     # Turn is created by the pitching moment
+        #     # We just modify angular velocity directly and pass it to the quaternion derivative
+        #     pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
+        #     rolling_moment = self.model.C_x(aoa, v_norm, wz) * res["torque_amplitude"]
+        #     roll = pitching_moment * xhat
+        #     pitch_up = rolling_moment * -yhat
+        #     w += (roll + pitch_up) / (i_zz * wz)
 
         # handle ground torque in the xy directions using gyroscopic precession
-        ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
-        torque_x = np.dot(ground_torque, xhat) * yhat # NB: x torque produces y angular velocity
-        torque_y = np.dot(ground_torque, yhat) * -xhat # NB: y torque produces -x angular velocity
-        w += (torque_x + torque_y) / (i_zz * wz)
+        # ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
+        # torque_x = np.dot(ground_torque, xhat) * yhat # NB: x torque produces y angular velocity
+        # torque_y = np.dot(ground_torque, yhat) * -xhat # NB: y torque produces -x angular velocity
+        # w += (torque_x + torque_y) / (i_zz * wz)
 
         w_norm = np.linalg.norm(w)
         if w_norm < math.ulp(1.0):
-            wquat = Rotation.from_quat([0, 0, 0, 0])
+            wquat = Rotation.from_quat([0, 0, 0, 1])
         else:
             # https://www.euclideanspace.com/physics/kinematics/angularvelocity/QuaternionDifferentiation2.pdf
             wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
@@ -191,22 +198,26 @@ class EOM:
         # Dampen angular velocity
         dampening = self.model.dampening_factor # wobble dampening
         dampening_z = self.model.dampening_z # spindown
-        acc = np.array([wx * dampening / i_xx, wy * dampening / i_xx, wz * dampening_z / i_zz]) * torque
+        acc = np.array([0.0, 0.0, 0.0])
 
-        # handle spinup/spindown from ground torque
-        ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
+        # add dampening
+        #acc += np.array([wx * dampening / i_xx, wy * dampening / i_xx, wz * dampening_z / i_zz]) * torque
+
+        # use eulers rigid body equations to compute presession of angular velocity
+        acc += np.array([wy * wz * (i_xx - i_zz) / i_xx, wx * wz * (i_zz - i_xx) / i_xx, 0])
+
+        xhat = res["unit_vectors"]["xhat"]
+        yhat = res["unit_vectors"]["yhat"]
         zhat = res["unit_vectors"]["zhat"]
-        acc[2] += np.dot(ground_torque, zhat) / i_zz
 
-        wobble = res["w"]
-        if abs(wz) > np.linalg.norm(wobble):
-            # Handle wobble by precession of angular velocity. Torque is handled as presession of Q, not angular acc.
-            delta_moment = self.model.I_zz - self.model.I_xx
-            acc += delta_moment / i_xx * 2 * wz * np.array([-wy, wx, 0])
-        else:
-            pitching_moment = self.model.C_y(aoa)
-            rolling_moment = self.model.C_x(aoa, v_norm, wz)
-            acc += np.array([rolling_moment, pitching_moment, 0]) * torque / i_xx
+        ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
+        # apply torque to the disc
+        # acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx,
+        #                  np.dot(ground_torque, zhat) / i_zz])
+
+        pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
+        rolling_moment = self.model.C_x(aoa, v_norm, wz) * res["torque_amplitude"]
+        #acc += np.array([rolling_moment/ i_xx, pitching_moment / i_xx, 0])
 
         res["T"] = acc
 
@@ -226,7 +237,7 @@ class EOM:
         Returns:
           derivatives of all coordinates
         """
-        x, y, z, vx, vy, vz, qx, qy, qz, qw, dphi, dtheta, dgamma = coordinates
+        x, y, z, vx, vy, vz, qx, qy, qz, qw, dphi, dtheta, dgamma, gamma = coordinates
         position = np.array([x, y, z])
         wind = self.environment.wind
         windVector = wind.get_wind_vector(time, position)
@@ -235,7 +246,7 @@ class EOM:
         rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
         # angular velocity is defined relative to the disc
         ang_velocity = np.array([dphi, dtheta, dgamma])
-        result = self.compute_forces(position, rotation, airVelocity, velocity, ang_velocity)
+        result = self.compute_forces(position, rotation, airVelocity, velocity, ang_velocity, gamma)
         result = self.compute_torques(airVelocity, ang_velocity, rotation, result)
         derivatives = np.array(
             [
@@ -251,7 +262,8 @@ class EOM:
                 result["dq"][3],
                 result["T"][0],  # x component of ang. acc.
                 result["T"][1],  # y component of ang. acc.
-                result["T"][2],  # gamma component of ang. acc. (only a dammpening factor)
+                result["T"][2],  # spin component of ang. acc.
+                dgamma,
             ]
         )
         return derivatives
@@ -264,8 +276,9 @@ class EOM:
     @staticmethod
     def calculate_intermediate_quantities(
             rotation: Rotation,
-            airVelocity: np.ndarray,
+            velocity: np.ndarray,
             ang_velocity: np.ndarray,
+            gamma: float = 0,
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
         """
         Compute intermediate quantities on the way to computing the time
@@ -275,20 +288,34 @@ class EOM:
         R = rotation.as_matrix()
         # Unit vectors
         zhat = R @ np.array([0, 0, 1])
-        v_dot_zhat = airVelocity @ zhat
-        v_in_plane = airVelocity - zhat * v_dot_zhat
+        v_dot_zhat = velocity @ zhat
+        v_in_plane = velocity - zhat * v_dot_zhat
+
+
+        n_dot_zhat = [1, 0, 0] @ zhat
+        n_in_plane = [1, 0, 0] - zhat * n_dot_zhat
+
 
         xhat = np.array([1, 0, 0])
         angle_of_attack = 0
         if np.linalg.norm(v_in_plane) > math.ulp(1.0):
             xhat = v_in_plane / np.linalg.norm(v_in_plane)
             angle_of_attack = -np.arctan(v_dot_zhat / np.linalg.norm(v_in_plane))
-        yhat = np.cross(zhat, xhat)
+        xhat = R @ np.array([1, 0, 0])
+        yhat = R @ np.array([0, 1, 0])
+
+        # rotate xhat and yhat around zhat by gamma
+        R_gamma = Rotation.from_rotvec(zhat * gamma)
+        xhat = R_gamma.apply(xhat)
+        yhat = R_gamma.apply(yhat)
 
         # wobble is only the in x and y axis relative to zhat
-        w = R @ np.array([ang_velocity[0], ang_velocity[1], 0])
+        w = ang_velocity[0] * xhat + ang_velocity[1] * yhat
         return {
-            "unit_vectors": {"xhat": xhat, "yhat": yhat, "zhat": zhat},
+            # zhat points toward the top of the flight plate
+            # xhat is where the original leading edge of the disc is now pointing
+            # yhat is perpendicular to zhat and xhat, it lies on the flight plate plane
+            "unit_vectors": {"xhat": xhat, "yhat": yhat, "zhat": zhat },
             "angle_of_attack": angle_of_attack,
             "w": w,
         }
