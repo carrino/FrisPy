@@ -12,12 +12,12 @@ from frispy import Disc
 from frispy import Model
 from frispy import Discs
 
-#model = Discs.stable_destroyer
-model = Discs.destroyer
-v = 54 * 0.44704
+model = Discs.stable_destroyer
+#model = Discs.destroyer
+v = 65 * 0.44704
 rot = -133.7
-nose_up = -1.15
-hyzer = 20
+nose_up = -0
+hyzer = 0
 uphill = 10
 wx = -13.2
 wx = 0
@@ -51,7 +51,7 @@ hz = abs(rot) / math.pi / 2
 # we need to have enough samples to spin in the correct direction
 max_step = 0.45 / hz
 #result = disc.compute_trajectory(30, **{"max_step": 1, "rtol": 1e-3, "atol": 1e-5})
-result = disc.compute_trajectory(6.0, **{"max_step": max_step, "rtol": 5e-5, "atol": 5e-8})
+result = disc.compute_trajectory(10.0, **{"max_step": max_step, "rtol": 5e-5, "atol": 5e-8})
 
 duration = time.perf_counter() - start
 pprint(duration)
@@ -68,16 +68,16 @@ t, x, y, z = result.times, result.x, result.y, result.z
 #plt.plot(t, [i / math.pi * 180 for i in result.aoa])
 
 
-#plt.plot(t, result.x)
-#plt.plot(t, result.y)
-#plt.plot(t, result.z)
+# plt.plot(t, result.x)
+plt.plot(t, result.y)
+plt.plot(t, result.z)
 #plt.plot(t, result.dgamma)
 
 
-plt.plot(t, result.phi)
-plt.plot(t, result.theta)
+#plt.plot(t, result.phi)
+#plt.plot(t, result.theta)
 
-#plt.plot(t, result.gamma)
+#plt.plot(t, result.dgamma)
 #plt.plot(t, result.z)
 #pprint(len(result.x))
 

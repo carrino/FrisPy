@@ -10,7 +10,7 @@ model = Discs.destroyer
 v = 25
 rot = -v/model.diameter
 nose_up = 0
-hyzer = 10
+hyzer = -2.7
 uphill = 10
 rotation_factor = 0
 rotation_factor = 1 / 10
@@ -33,12 +33,12 @@ disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "
                     #"nose_up": nose_up, "hyzer": hyzer})
 
 #result = disc.compute_trajectory(20)
-result = disc.compute_trajectory(3, **{"max_step": .5, "rtol": 5e-4, "atol": 1e-6})
+result = disc.compute_trajectory(10, **{"max_step": .5, "rtol": 5e-4, "atol": 1e-6})
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 
-#plt.plot(x, y)
-plt.plot(t, z)
+#plt.plot(t, y)
+#plt.plot(t, z)
 
 #plt.plot(t, result.dphi)
 #plt.plot(t, result.dtheta)
@@ -48,5 +48,5 @@ plt.plot(t, [i * 180 / math.pi for i in result.phi])
 plt.plot(t, [i * 180 / math.pi for i in result.theta])
 #plt.plot(t, [math.sin(i) for i in result.gamma])
 
-pprint(x[-1])
+pprint(result.x[-1] * 3.28084) # convert m to feet
 plt.show()

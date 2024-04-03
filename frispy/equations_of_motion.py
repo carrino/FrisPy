@@ -44,7 +44,7 @@ class EOM:
         """
         Compute the lift, drag, and gravitational forces on the disc.
         """
-        res = EOM.calculate_intermediate_quantities(rotation, velocity, ang_velocity, gamma)
+        res = EOM.calculate_intermediate_quantities(rotation, airVelocity, ang_velocity, gamma)
         aoa = res["angle_of_attack"]
         v_norm = np.linalg.norm(airVelocity)
         vhat = np.array([1, 0, 0])
@@ -131,7 +131,7 @@ class EOM:
             res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
         """
-        Compute the turn, gyroscopic precession, and wobble dampening
+        Compute the turn, gyroscopic precession, and wobble damping
         """
 
         aoa = res["angle_of_attack"]
@@ -195,13 +195,13 @@ class EOM:
         i_zz = self.model.I_zz
         wx, wy, wz = ang_velocity
 
-        # Dampen angular velocity
-        dampening = self.model.dampening_factor # wobble dampening
-        dampening_z = self.model.dampening_z # spindown
+        # Damp angular velocity
+        damping = self.model.dampening_factor # wobble damping
+        damping_z = self.model.dampening_z # spindown
         acc = np.array([0.0, 0.0, 0.0])
 
-        # add dampening
-        #acc += np.array([wx * dampening / i_xx, wy * dampening / i_xx, wz * dampening_z / i_zz]) * torque
+        # add damping
+        acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * torque
 
         # use eulers rigid body equations to compute presession of angular velocity
         acc += np.array([wy * wz * (i_xx - i_zz) / i_xx, wx * wz * (i_zz - i_xx) / i_xx, 0])
@@ -209,15 +209,20 @@ class EOM:
         xhat = res["unit_vectors"]["xhat"]
         yhat = res["unit_vectors"]["yhat"]
         zhat = res["unit_vectors"]["zhat"]
+        vhat = res["unit_vectors"]["vhat"]
 
         ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
         # apply torque to the disc
-        # acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx,
-        #                  np.dot(ground_torque, zhat) / i_zz])
+        acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx,
+                         np.dot(ground_torque, zhat) / i_zz])
 
         pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
-        rolling_moment = self.model.C_x(aoa, v_norm, wz) * res["torque_amplitude"]
-        #acc += np.array([rolling_moment/ i_xx, pitching_moment / i_xx, 0])
+        #rolling_moment = self.model.C_x(aoa, v_norm, wz) * res["torque_amplitude"]
+        pitching_direction = np.cross(zhat, vhat)
+        if np.linalg.norm(pitching_direction) > math.ulp(1):
+            pitching_direction /= np.linalg.norm(pitching_direction)
+        pitching_torque = -pitching_moment * pitching_direction
+        acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
 
         res["T"] = acc
 
@@ -276,7 +281,7 @@ class EOM:
     @staticmethod
     def calculate_intermediate_quantities(
             rotation: Rotation,
-            velocity: np.ndarray,
+            airVelocity: np.ndarray,
             ang_velocity: np.ndarray,
             gamma: float = 0,
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
@@ -288,19 +293,19 @@ class EOM:
         R = rotation.as_matrix()
         # Unit vectors
         zhat = R @ np.array([0, 0, 1])
-        v_dot_zhat = velocity @ zhat
-        v_in_plane = velocity - zhat * v_dot_zhat
+        v_dot_zhat = airVelocity @ zhat
+        v_in_plane = airVelocity - zhat * v_dot_zhat
 
+        vhat = airVelocity
+        if np.linalg.norm(airVelocity) > math.ulp(1.0):
+            vhat = airVelocity / np.linalg.norm(airVelocity)
 
-        n_dot_zhat = [1, 0, 0] @ zhat
-        n_in_plane = [1, 0, 0] - zhat * n_dot_zhat
-
-
-        xhat = np.array([1, 0, 0])
+        #xhat = np.array([1, 0, 0])
         angle_of_attack = 0
         if np.linalg.norm(v_in_plane) > math.ulp(1.0):
-            xhat = v_in_plane / np.linalg.norm(v_in_plane)
+            #xhat = v_in_plane / np.linalg.norm(v_in_plane)
             angle_of_attack = -np.arctan(v_dot_zhat / np.linalg.norm(v_in_plane))
+
         xhat = R @ np.array([1, 0, 0])
         yhat = R @ np.array([0, 1, 0])
 
@@ -315,7 +320,7 @@ class EOM:
             # zhat points toward the top of the flight plate
             # xhat is where the original leading edge of the disc is now pointing
             # yhat is perpendicular to zhat and xhat, it lies on the flight plate plane
-            "unit_vectors": {"xhat": xhat, "yhat": yhat, "zhat": zhat },
+            "unit_vectors": {"xhat": xhat, "yhat": yhat, "zhat": zhat, "vhat": vhat },
             "angle_of_attack": angle_of_attack,
             "w": w,
         }
