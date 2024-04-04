@@ -101,7 +101,7 @@ class EOM:
         f_spring = np.array([0, 0, 0])
         f_ground_drag = np.array([0, 0, 0])
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
-            spring_multiplier = -dist_from_ground * 1000 # 1g per mm
+            spring_multiplier = -dist_from_ground * 100 # 1g per mm
             ground_drag_constant = 0.5 # TODO: add a ground drag parameter to the environment
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
@@ -109,7 +109,8 @@ class EOM:
             edgeVelocity = np.cross(w, closest_point_from_center)
 
             discEdgeVelocity = velocity + edgeVelocity
-            discEdgeVelocityNormal = discEdgeVelocity - np.dot(discEdgeVelocity, up) * up
+            discEdgeDotUp = np.dot(discEdgeVelocity, up)
+            discEdgeVelocityNormal = discEdgeVelocity - discEdgeDotUp * up
             drag_direction = -discEdgeVelocityNormal
             if np.linalg.norm(drag_direction) > math.ulp(1):
                 drag_direction /= np.linalg.norm(drag_direction)
@@ -119,6 +120,7 @@ class EOM:
                 # this means we are rolling, replace the drag with a rolling friction
                 # rolling friction in the direction of rolling and static friction in the direction of the normal
                 f_ground_drag /= 4
+            f_ground_drag -= f_normal * ground_drag_constant * math.copysign(1, discEdgeDotUp) * up
         res["F_ground_spring"] = f_spring
         res["F_ground_drag"] = f_ground_drag
         res["F_ground"] = f_spring + f_ground_drag
