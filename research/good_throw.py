@@ -14,7 +14,7 @@ from frispy import Discs
 
 model = Discs.stable_destroyer
 #model = Discs.destroyer
-v = 65 * 0.44704
+v = 50 * 0.44704
 rot = -133.7
 nose_up = -0
 hyzer = 0
@@ -42,7 +42,7 @@ degrees = math.atan(wx/rot/2) * 180 / math.pi
 
 start = time.perf_counter()
 env: Environment = Environment()
-#env._ground_play_enabled = True
+env._ground_play_enabled = True
 disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(uphill * math.pi / 180) * v,
                     "nose_up": nose_up, "hyzer": hyzer, "dphi": wx, "dtheta": wy, "gamma": gamma}, env)
 
@@ -51,7 +51,7 @@ hz = abs(rot) / math.pi / 2
 # we need to have enough samples to spin in the correct direction
 max_step = 0.45 / hz
 #result = disc.compute_trajectory(30, **{"max_step": 1, "rtol": 1e-3, "atol": 1e-5})
-result = disc.compute_trajectory(10.0, **{"max_step": max_step, "rtol": 5e-5, "atol": 5e-8})
+result = disc.compute_trajectory(15.0, **{"max_step": max_step, "rtol": 5e-5, "atol": 5e-8})
 
 duration = time.perf_counter() - start
 pprint(duration)
@@ -69,13 +69,13 @@ t, x, y, z = result.times, result.x, result.y, result.z
 
 
 # plt.plot(t, result.x)
-plt.plot(t, result.y)
-plt.plot(t, result.z)
-#plt.plot(t, result.dgamma)
+#plt.plot(t, result.y)
+#plt.plot(t, result.z)
+plt.plot(t, result.dgamma)
 
 
-#plt.plot(t, result.phi)
-#plt.plot(t, result.theta)
+plt.plot(t, result.phi)
+plt.plot(t, result.theta)
 
 #plt.plot(t, result.dgamma)
 #plt.plot(t, result.z)

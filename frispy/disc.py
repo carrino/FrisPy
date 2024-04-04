@@ -173,7 +173,7 @@ class Disc:
                 position = [fpr.x[i], fpr.y[i], fpr.z[i]]
                 v[i] = velocity
                 pos[i] = position
-                angles = EOM.calculate_intermediate_quantities(r, velocity, [0, 0])
+                angles = EOM.calculate_intermediate_quantities(r, velocity, [0, 0, 0])
                 aoa[i] = angles["angle_of_attack"]
 
             return fpr
