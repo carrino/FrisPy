@@ -115,11 +115,10 @@ class EOM:
                 drag_direction /= np.linalg.norm(drag_direction)
 
             f_ground_drag = f_normal * ground_drag_constant * drag_direction
-            # if np.linalg.norm(discEdgeVelocity) < 0.25:
-            #     if np.linalg.norm(velocity) > math.ulp(1):
-            #         f_ground_drag = -f_normal * (ground_drag_constant / 4) * (velocity / np.linalg.norm(velocity))
-            # else:
-            #     f_ground_drag = -f_normal * ground_drag_constant * discEdgeVelocity
+            if np.linalg.norm(discEdgeVelocityNormal) < 0.25:
+                # this means we are rolling, replace the drag with a rolling friction
+                # rolling friction in the direction of rolling and static friction in the direction of the normal
+                f_ground_drag /= 4
         res["F_ground_spring"] = f_spring
         res["F_ground_drag"] = f_ground_drag
         res["F_ground"] = f_spring + f_ground_drag
