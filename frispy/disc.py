@@ -124,7 +124,7 @@ class Disc:
                 return z
             v_norm = np.linalg.norm([vx, vy, vz])
             # once the disc slows down to below 1mm/s, we end the simulation
-            return v_norm - 0.001
+            return v_norm - 0.1
             #return math.fabs(wz) + v_norm - 0.01
         hit_ground.terminal = True
         result = solve_ivp(

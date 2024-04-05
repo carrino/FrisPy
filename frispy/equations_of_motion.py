@@ -112,6 +112,7 @@ class EOM:
             discEdgeDotUp = np.dot(discEdgeVelocity, up)
             discEdgeVelocityNormal = discEdgeVelocity - discEdgeDotUp * up
             drag_direction = -discEdgeVelocityNormal
+            drag_direction = -discEdgeVelocity
             if np.linalg.norm(drag_direction) > math.ulp(1):
                 drag_direction /= np.linalg.norm(drag_direction)
 
@@ -120,7 +121,6 @@ class EOM:
                 # this means we are rolling, replace the drag with a rolling friction
                 # rolling friction in the direction of rolling and static friction in the direction of the normal
                 f_ground_drag /= 4
-            f_ground_drag -= f_normal * ground_drag_constant * math.copysign(1, discEdgeDotUp) * up
         res["F_ground_spring"] = f_spring
         res["F_ground_drag"] = f_ground_drag
         res["F_ground"] = f_spring + f_ground_drag

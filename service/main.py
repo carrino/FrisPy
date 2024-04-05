@@ -122,7 +122,12 @@ def flight_path_helper(content):
         max_step = 0.45 / hz
     result = None
     try:
-        result = disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
+        result = disc.compute_trajectory(flight_max_seconds, **{
+            "max_step": max_step,
+            "rtol": 1e-3,
+            "atol": 1e-3,
+            "method": "DOP853",
+        })
         return to_result(gamma, result)
     except Exception as e:
         logging.error("failed to process flight e: %s, content: %s, result: %s", e, content, result)
