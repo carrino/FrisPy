@@ -17,7 +17,7 @@ model = Discs.destroyer
 v = 50 * 0.44704
 rot = -133.7
 nose_up = -0
-hyzer = -10
+hyzer = -20
 uphill = 10
 wx = -13.2
 wx = 0
@@ -53,9 +53,9 @@ max_step = 0.45 / hz
 #result = disc.compute_trajectory(30, **{"max_step": 1, "rtol": 1e-3, "atol": 1e-5})
 result = disc.compute_trajectory(15.0,
                                  **{"max_step": max_step,
-                                    "rtol": 1e-4,
-                                    "atol": 1e-4,
-                                    # "method": "DOP853",
+                                    "rtol": 1e-8,
+                                    "atol": 1e-2,
+                                    "method": "DOP853",
                                     })
 
 duration = time.perf_counter() - start
