@@ -210,8 +210,12 @@ class EOM:
         damping_z = self.model.dampening_z # spindown
         acc = np.array([0.0, 0.0, 0.0])
 
-        # add damping
-        acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * torque
+        # add damping due to air
+        acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
+
+        plastic_damp = 0.01
+        # add damping due to plastic deformation
+        acc += np.array([-wx * plastic_damp, -wy * plastic_damp, -wz * plastic_damp])
 
         # use eulers rigid body equations to compute presession of angular velocity
         acc += np.array([wy * wz * (i_xx - i_zz) / i_xx, wx * wz * (i_zz - i_xx) / i_xx, 0])
