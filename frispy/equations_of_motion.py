@@ -92,6 +92,8 @@ class EOM:
             ground_minus_zhat *= -1
             closest_point_from_center = ground_minus_zhat / np.linalg.norm(ground_minus_zhat)
             closest_point_from_center *= self.model.diameter / 2
+            # TODO: Look up wing edge depth above/below center of mass
+            closest_point_from_center += zhat * -0.003
         edge_position = position + closest_point_from_center
 
         # TODO: lookup ground height below edge_position, assume 0 for now
@@ -213,12 +215,12 @@ class EOM:
         # add damping due to air
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
-        plastic_damp = 0.01
+        plastic_damp = 0.05
         # add damping due to plastic deformation
         acc += np.array([-wx * plastic_damp, -wy * plastic_damp, -wz * plastic_damp])
 
-        # use eulers rigid body equations to compute presession of angular velocity
-        acc += np.array([wy * wz * (i_xx - i_zz) / i_xx, wx * wz * (i_zz - i_xx) / i_xx, 0])
+        # use eulers rigid body equations to compute precession of angular velocity
+        acc += np.array([wy * wz * (1-plastic_damp) * (i_xx - i_zz) / i_xx, wx * wz * (1-plastic_damp) * (i_zz - i_xx) / i_xx, 0])
 
         xhat = res["unit_vectors"]["xhat"]
         yhat = res["unit_vectors"]["yhat"]
