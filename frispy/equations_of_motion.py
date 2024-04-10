@@ -124,7 +124,7 @@ class EOM:
                 # rolling friction in the direction of rolling and static friction in the direction of the normal
                 spinningEnergy = 0.5 * np.dot(w, w) * self.model.I_zz
                 translationalEnergy = 0.5 * np.dot(velocity, velocity) * self.model.mass
-                f_ground_drag /= 1
+                f_ground_drag /= 4
         res["F_ground_spring"] = f_spring
         res["F_ground_drag"] = f_ground_drag
         res["F_ground"] = f_spring + f_ground_drag

@@ -14,11 +14,13 @@ from frispy import Discs
 
 #model = Discs.stable_destroyer
 model = Discs.destroyer
-v = 50 * 0.44704
+model = Discs.from_flight_numbers({"glide": 5, "speed": 9, "turn": -1})
+v = 55 * 0.44704
 rot = -133.7
-nose_up = -0
-hyzer = -20
-uphill = 10
+rot = -1000 / 60 * 2 * math.pi
+nose_up = -2.5
+hyzer = -43
+uphill = 5
 wx = -13.2
 wx = 0
 wy = -8.88
