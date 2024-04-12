@@ -124,7 +124,7 @@ def flight_path_helper(content):
     try:
         result = disc.compute_trajectory(flight_max_seconds, **{
             "max_step": max_step,
-            "rtol": 1e-8,
+            "rtol": 1e-9,
             "atol": 1e-2,
             # "method": "DOP853",
         })
