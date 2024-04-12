@@ -215,9 +215,9 @@ class EOM:
         # add damping due to air
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
-        plastic_damp = 0.05
+        plastic_damp = 0.10 # 10% per second
         # add damping due to plastic deformation
-        acc += np.array([-wx * plastic_damp, -wy * plastic_damp, -wz * plastic_damp])
+        acc += np.array([-wx * plastic_damp, -wy * plastic_damp, 0])
 
         # use eulers rigid body equations to compute precession of angular velocity
         acc += np.array([wy * wz * (1-plastic_damp) * (i_xx - i_zz) / i_xx, wx * wz * (1-plastic_damp) * (i_zz - i_xx) / i_xx, 0])
@@ -228,12 +228,13 @@ class EOM:
         vhat = res["unit_vectors"]["vhat"]
 
         ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
-        # apply torque to the disc
+
+        # apply torque to the disc (only if it's not rolling, otherwise torque is applied)
         acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx,
                          np.dot(ground_torque, zhat) / i_zz])
 
+        # only apply pitching if it's not rolling, otherwise apply as precession
         pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
-        #rolling_moment = self.model.C_x(aoa, v_norm, wz) * res["torque_amplitude"]
         pitching_direction = np.cross(zhat, vhat)
         if np.linalg.norm(pitching_direction) > math.ulp(1):
             pitching_direction /= np.linalg.norm(pitching_direction)

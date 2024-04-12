@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 from frispy import Disc
 from frispy import Discs
 
-model = Discs.destroyer
-v = 25
+model = Discs.stable_destroyer
+v = 55 * 0.44704
 rot = -v/model.diameter
 nose_up = 0
-hyzer = -2.7
-uphill = 10
+hyzer = 0
+uphill = 0
 rotation_factor = 0
 rotation_factor = 1 / 10
 
@@ -33,19 +33,20 @@ disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "
                     #"nose_up": nose_up, "hyzer": hyzer})
 
 #result = disc.compute_trajectory(20)
-result = disc.compute_trajectory(10, **{"max_step": .5, "rtol": 5e-4, "atol": 1e-6})
+result = disc.compute_trajectory(1, **{"max_step": .001, "rtol": 1e-8, "atol": 1e-3})
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 
 #plt.plot(t, y)
 #plt.plot(t, z)
 
-#plt.plot(t, result.dphi)
-#plt.plot(t, result.dtheta)
+#plt.plot(t, result.phi) # phi is anhyzer
+plt.plot(t, result.theta) # theta is nose up
+#plt.plot(t, result.gamma) # gamma is rotation around Z
 
 #plt.plot(t, result.phi)
-plt.plot(t, [i * 180 / math.pi for i in result.phi])
-plt.plot(t, [i * 180 / math.pi for i in result.theta])
+#plt.plot(t, [i * 180 / math.pi for i in result.phi])
+#plt.plot(t, [i * 180 / math.pi for i in result.theta])
 #plt.plot(t, [math.sin(i) for i in result.gamma])
 
 pprint(result.x[-1] * 3.28084) # convert m to feet
