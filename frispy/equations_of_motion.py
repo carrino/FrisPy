@@ -104,7 +104,7 @@ class EOM:
         f_ground_drag = np.array([0, 0, 0])
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
             spring_multiplier = -dist_from_ground * 100 # 1g per mm
-            ground_drag_constant = 0.3 # TODO: add a ground drag parameter to the environment
+            ground_drag_constant = 0.5 # TODO: add a ground drag parameter to the environment
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
             w = res["w"]
@@ -215,7 +215,7 @@ class EOM:
         # add damping due to air
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
-        plastic_damp = 0.05
+        plastic_damp = 0.10
         # add damping due to plastic deformation
         acc += np.array([-wx * plastic_damp, -wy * plastic_damp, -wz * plastic_damp])
 
