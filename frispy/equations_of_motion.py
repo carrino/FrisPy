@@ -103,7 +103,7 @@ class EOM:
         f_spring = np.array([0, 0, 0])
         f_ground_drag = np.array([0, 0, 0])
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
-            spring_multiplier = -dist_from_ground * 1000 # 1g per mm
+            spring_multiplier = -dist_from_ground * 100 # 1g per mm
             ground_drag_constant = 0.5 # TODO: add a ground drag parameter to the environment
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
@@ -208,7 +208,7 @@ class EOM:
         wx, wy, wz = ang_velocity
 
         # Damp angular velocity
-        damping = self.model.dampening_factor # wobble damping
+        damping = self.model.dampening_factor / 2 # wobble damping
         damping_z = self.model.dampening_z # spindown
         acc = np.array([0.0, 0.0, 0.0])
 
