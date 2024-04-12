@@ -51,12 +51,12 @@ disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "
 hz = abs(rot) / math.pi / 2
 # In order to get a smooth output for the rotation of the disc
 # we need to have enough samples to spin in the correct direction
-max_step = 0.45 / hz
+max_step = 0.45 / hz / 10
 #result = disc.compute_trajectory(30, **{"max_step": 1, "rtol": 1e-3, "atol": 1e-5})
 result = disc.compute_trajectory(15.0,
                                  **{"max_step": max_step,
-                                    "rtol": 1e-8,
-                                    "atol": 1e-2,
+                                    "rtol": 1e-9,
+                                    "atol": 1e-3,
                                     # "method": "DOP853",
                                     })
 
