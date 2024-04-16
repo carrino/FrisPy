@@ -14,7 +14,7 @@ v = 60 * mph_to_mps
 rot = -v / model.diameter
 wind = ConstantWind(np.array([v/2, 0, 0]))
 
-x0 = [12, 0, -5]
+x0 = [12, 0, 0]
 a, nose_up, hyzer = x0
 disc = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(a * math.pi / 180) * v,
                  "nose_up": nose_up, "hyzer": hyzer},

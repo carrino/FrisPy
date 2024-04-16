@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import Dict, Union
 
 import numpy as np
@@ -163,24 +164,20 @@ class EOM:
 
 
         w = res["w_xy"]
-        #xhat = res["unit_vectors"]["xhat"]
-        #yhat = res["unit_vectors"]["yhat"]
-        #zhat = res["unit_vectors"]["zhat"]
+        xhat = res["unit_vectors"]["xhat"]
+        yhat = res["unit_vectors"]["yhat"]
+        fhat = res["unit_vectors"]["fhat"]
+        lhat = res["unit_vectors"]["lhat"]
 
-        # if abs(wz) > np.linalg.norm(w):
-        #     # Turn is created by the pitching moment
-        #     # We just modify angular velocity directly and pass it to the quaternion derivative
-        #     pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
-        #     rolling_moment = self.model.C_x(aoa, v_norm, wz) * res["torque_amplitude"]
-        #     roll = pitching_moment * xhat
-        #     pitch_up = rolling_moment * -yhat
-        #     w += (roll + pitch_up) / (i_zz * wz)
+        if np.linalg.norm(wz) > 2 * np.linalg.norm(w):
+            ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
+            torque_x = np.dot(ground_torque, xhat) * yhat  # NB: x torque produces y angular velocity
+            torque_y = np.dot(ground_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
+            w += (torque_x + torque_y) / (i_zz * wz)
 
-        # handle ground torque in the xy directions using gyroscopic precession
-        # ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
-        # torque_x = np.dot(ground_torque, xhat) * yhat # NB: x torque produces y angular velocity
-        # torque_y = np.dot(ground_torque, yhat) * -xhat # NB: y torque produces -x angular velocity
-        # w += (torque_x + torque_y) / (i_zz * wz)
+            pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
+            roll = pitching_moment * fhat
+            w += roll / (i_zz * wz)
 
         w_norm = np.linalg.norm(w)
         if w_norm < math.ulp(1.0):
@@ -190,13 +187,12 @@ class EOM:
             wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
         res["dq"] = wquat.as_quat() * w_norm / 2
 
-        self.compute_angular_acc(ang_velocity, torque, res, aoa, v_norm)
+        self.compute_angular_acc(ang_velocity, res, aoa, v_norm)
         return res
 
     def compute_angular_acc(
             self,
             ang_velocity: np.ndarray,
-            torque: float,
             res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
             aoa: float,
             v_norm: float):
@@ -208,14 +204,14 @@ class EOM:
         wx, wy, wz = ang_velocity
 
         # Damp angular velocity
-        damping = self.model.dampening_factor / 2 # wobble damping
+        damping = self.model.dampening_factor # wobble damping
         damping_z = self.model.dampening_z # spindown
         acc = np.array([0.0, 0.0, 0.0])
 
         # add damping due to air
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
-        plastic_damp = 0.10 # 10% per second
+        plastic_damp = 0.0 # 10% per second
         # add damping due to plastic deformation
         acc += np.array([-wx * plastic_damp, -wy * plastic_damp, 0])
 
@@ -226,20 +222,17 @@ class EOM:
         yhat = res["unit_vectors"]["yhat"]
         zhat = res["unit_vectors"]["zhat"]
         vhat = res["unit_vectors"]["vhat"]
+        lhat = res["unit_vectors"]["lhat"]
 
         ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
 
-        # apply torque to the disc (only if it's not rolling, otherwise torque is applied)
-        acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx,
-                         np.dot(ground_torque, zhat) / i_zz])
+        #acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, np.dot(ground_torque, zhat) / i_zz])
+        acc += np.array([0, 0, np.dot(ground_torque, zhat) / i_zz])
 
         # only apply pitching if it's not rolling, otherwise apply as precession
         pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
-        pitching_direction = np.cross(zhat, vhat)
-        if np.linalg.norm(pitching_direction) > math.ulp(1):
-            pitching_direction /= np.linalg.norm(pitching_direction)
-        pitching_torque = -pitching_moment * pitching_direction
-        acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
+        pitching_torque = -pitching_moment * lhat
+        #acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
 
         res["T"] = acc
 
@@ -317,14 +310,15 @@ class EOM:
         if np.linalg.norm(airVelocity) > math.ulp(1.0):
             vhat = airVelocity / np.linalg.norm(airVelocity)
 
-        #xhat = np.array([1, 0, 0])
+        fhat = vhat
         angle_of_attack = 0
         if np.linalg.norm(v_in_plane) > math.ulp(1.0):
-            #xhat = v_in_plane / np.linalg.norm(v_in_plane)
+            fhat = v_in_plane / np.linalg.norm(v_in_plane)
             angle_of_attack = -np.arctan(v_dot_zhat / np.linalg.norm(v_in_plane))
 
         xhat = R @ np.array([1, 0, 0])
         yhat = R @ np.array([0, 1, 0])
+        lhat = np.cross(zhat, fhat)
 
         # rotate xhat and yhat around zhat by gamma
         R_gamma = Rotation.from_rotvec(zhat * gamma)
@@ -338,7 +332,9 @@ class EOM:
             # zhat points toward the top of the flight plate
             # xhat is where the original leading edge of the disc is now pointing
             # yhat is perpendicular to zhat and xhat, it lies on the flight plate plane
-            "unit_vectors": {"xhat": xhat, "yhat": yhat, "zhat": zhat, "vhat": vhat },
+            # fhat is the edge of the disc that is leading in the direction of travel
+            # lhat is the edge of the disc that is to the left in the direction of travel
+            "unit_vectors": {"xhat": xhat, "yhat": yhat, "zhat": zhat, "vhat": vhat, "lhat": lhat, "fhat": fhat },
             "angle_of_attack": angle_of_attack,
             "w_xy": w_xy,
             "w": w,
