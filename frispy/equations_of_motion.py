@@ -227,7 +227,7 @@ class EOM:
         ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
 
         acc += np.array([0, 0, np.dot(ground_torque, zhat) / i_zz])
-        if np.linalg.norm(wz) <= 2 * np.linalg.norm(w):
+        if np.linalg.norm(wz) <= 2 * np.linalg.norm(res["w_xy"]):
             acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, 0])
             pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
             pitching_torque = -pitching_moment * lhat
