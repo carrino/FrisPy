@@ -103,6 +103,7 @@ class EOM:
         dist_from_ground = edge_position[2] - ground_height
         f_spring = np.array([0, 0, 0])
         f_ground_drag = np.array([0, 0, 0])
+        f_ground_drag_fraction = 1
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
             spring_multiplier = -dist_from_ground * 100 # 1g per mm
             ground_drag_constant = 0.5 # TODO: add a ground drag parameter to the environment
@@ -114,7 +115,13 @@ class EOM:
             discEdgeVelocity = velocity + edgeVelocity
             discEdgeDotUp = np.dot(discEdgeVelocity, up)
             discEdgeVelocityNormal = discEdgeVelocity - discEdgeDotUp * up
-            drag_direction = -discEdgeVelocity
+            drag_direction = -velocity
+            norm_v = np.linalg.norm(velocity)
+            norm_edge = np.linalg.norm(discEdgeVelocity)
+            if norm_v > norm_edge:
+                drag_direction = -discEdgeVelocity
+                f_ground_drag_fraction *= norm_edge / norm_v
+
             if np.linalg.norm(drag_direction) > 1:
                 drag_direction /= np.linalg.norm(drag_direction)
 
@@ -127,8 +134,8 @@ class EOM:
                 #f_ground_drag *= 2
                 # change rolling friction to apply to the center of mass and update the wz to match the rolling rate
         res["F_ground_spring"] = f_spring
-        res["F_ground_drag"] = f_ground_drag
-        res["F_ground"] = f_spring + f_ground_drag
+        res["F_ground_drag"] = f_ground_drag * f_ground_drag_fraction
+        res["F_ground"] = f_spring + res["F_ground_drag"]
         res["ground_normal"] = up
         res["contact_point_from_center"] = closest_point_from_center
 
@@ -169,15 +176,15 @@ class EOM:
         fhat = res["unit_vectors"]["fhat"]
         lhat = res["unit_vectors"]["lhat"]
 
-        if np.linalg.norm(wz) > 2 * np.linalg.norm(w):
-            ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
-            torque_x = np.dot(ground_torque, xhat) * yhat  # NB: x torque produces y angular velocity
-            torque_y = np.dot(ground_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
-            w += (torque_x + torque_y) / (i_zz * wz)
-
-            pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
-            roll = pitching_moment * fhat
-            w += roll / (i_zz * wz)
+        # if np.linalg.norm(wz) > 2 * np.linalg.norm(w):
+        #     ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
+        #     torque_x = np.dot(ground_torque, xhat) * yhat  # NB: x torque produces y angular velocity
+        #     torque_y = np.dot(ground_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
+        #     w += (torque_x + torque_y) / (i_zz * wz)
+        #
+        #     pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
+        #     roll = pitching_moment * fhat
+        #     w += roll / (i_zz * wz)
 
         w_norm = np.linalg.norm(w)
         if w_norm < math.ulp(1.0):
@@ -227,11 +234,11 @@ class EOM:
         ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
 
         acc += np.array([0, 0, np.dot(ground_torque, zhat) / i_zz])
-        if np.linalg.norm(wz) <= 2 * np.linalg.norm(res["w_xy"]):
-            acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, 0])
-            pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
-            pitching_torque = -pitching_moment * lhat
-            acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
+        # if np.linalg.norm(wz) <= 2 * np.linalg.norm(res["w_xy"]):
+        acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, 0])
+        pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
+        pitching_torque = -pitching_moment * lhat
+        acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
 
         res["T"] = acc
 
