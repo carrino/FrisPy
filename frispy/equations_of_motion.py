@@ -111,7 +111,8 @@ class EOM:
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
             w = res["w"]
-            edgeVelocity = np.cross(ang_velocity[2] * zhat, closest_point_from_center)
+            #edgeVelocity = np.cross(ang_velocity[2] * zhat, closest_point_from_center)
+            edgeVelocity = np.cross(w, closest_point_from_center)
             #edgeVelocityHat = edgeVelocity / np.linalg.norm(edgeVelocity)
 
             discEdgeVelocity = velocity + edgeVelocity
