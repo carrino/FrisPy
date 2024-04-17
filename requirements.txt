@@ -5,7 +5,7 @@ matplotlib==3.4.3
 # used for docker service
 Flask==2.2.5
 Werkzeug==2.3.8
-gunicorn==20.1.0
+gunicorn==22.0.0
 
 flask_cors==3.0.10
 
