@@ -211,7 +211,7 @@ class EOM:
         # add damping due to air
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
-        plastic_damp = 0.0 # 10% per second
+        plastic_damp = 0.1 # 10% per second
         # add damping due to plastic deformation
         acc += np.array([-wx * plastic_damp, -wy * plastic_damp, 0])
 
@@ -226,13 +226,12 @@ class EOM:
 
         ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
 
-        #acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, np.dot(ground_torque, zhat) / i_zz])
         acc += np.array([0, 0, np.dot(ground_torque, zhat) / i_zz])
-
-        # only apply pitching if it's not rolling, otherwise apply as precession
-        pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
-        pitching_torque = -pitching_moment * lhat
-        #acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
+        if np.linalg.norm(wz) <= 2 * np.linalg.norm(w):
+            acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, 0])
+            pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
+            pitching_torque = -pitching_moment * lhat
+            acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
 
         res["T"] = acc
 
