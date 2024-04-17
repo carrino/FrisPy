@@ -103,6 +103,7 @@ class EOM:
         dist_from_ground = edge_position[2] - ground_height
         f_spring = np.array([0, 0, 0])
         f_ground_drag = np.array([0, 0, 0])
+        zhat_dot_up = np.dot(zhat, up)
         f_ground_drag_fraction = 1
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
             spring_multiplier = -dist_from_ground * 100 # 1g per mm
@@ -110,17 +111,19 @@ class EOM:
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
             w = res["w"]
-            edgeVelocity = np.cross(w, closest_point_from_center)
+            edgeVelocity = np.cross(ang_velocity[2] * zhat, closest_point_from_center)
+            #edgeVelocityHat = edgeVelocity / np.linalg.norm(edgeVelocity)
 
             discEdgeVelocity = velocity + edgeVelocity
             discEdgeDotUp = np.dot(discEdgeVelocity, up)
             discEdgeVelocityNormal = discEdgeVelocity - discEdgeDotUp * up
-            drag_direction = -velocity
-            norm_v = np.linalg.norm(velocity)
-            norm_edge = np.linalg.norm(discEdgeVelocity)
-            if norm_v > norm_edge:
-                drag_direction = -discEdgeVelocity
-                f_ground_drag_fraction *= norm_edge / norm_v
+            # drag_direction = -velocity
+            # norm_v = np.linalg.norm(velocity)
+            # norm_edge = np.linalg.norm(discEdgeVelocity)
+            # if norm_v > norm_edge:
+            #     drag_direction = -discEdgeVelocity
+            #     f_ground_drag_fraction *= norm_edge / norm_v
+            drag_direction = -discEdgeVelocity
 
             if np.linalg.norm(drag_direction) > 1:
                 drag_direction /= np.linalg.norm(drag_direction)
@@ -134,8 +137,8 @@ class EOM:
                 #f_ground_drag *= 2
                 # change rolling friction to apply to the center of mass and update the wz to match the rolling rate
         res["F_ground_spring"] = f_spring
-        res["F_ground_drag"] = f_ground_drag * f_ground_drag_fraction
-        res["F_ground"] = f_spring + res["F_ground_drag"]
+        res["F_ground_drag"] = f_ground_drag
+        res["F_ground"] = f_spring + f_ground_drag * f_ground_drag_fraction
         res["ground_normal"] = up
         res["contact_point_from_center"] = closest_point_from_center
 
@@ -213,12 +216,18 @@ class EOM:
         # Damp angular velocity
         damping = self.model.dampening_factor # wobble damping
         damping_z = self.model.dampening_z # spindown
+
+
         acc = np.array([0.0, 0.0, 0.0])
 
         # add damping due to air
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
-        plastic_damp = 0.1 # 10% per second
+        #add damping from ground
+        if np.linalg.norm(res["F_ground"]) > 0:
+            acc += np.array([0, 0, -wz * 0.1])
+
+        plastic_damp = 0.0 # 10% per second
         # add damping due to plastic deformation
         acc += np.array([-wx * plastic_damp, -wy * plastic_damp, 0])
 
