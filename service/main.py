@@ -118,15 +118,18 @@ def flight_path_helper(content):
     # In order to get a smooth output for the rotation of the disc
     # we need to have enough samples to spin in the correct direction
     max_step = 0.1
-    if hz > 4.5:
-        max_step = 0.45 / hz
+    if hz > 1:
+        max_step = 0.1 / hz
+    alt_max_step = 0.1
+    if v > model.diameter * math.pi:
+        alt_max_step = 0.1 * (model.diameter * math.pi) / v
     result = None
     try:
         result = disc.compute_trajectory(flight_max_seconds, **{
-            "max_step": max_step / 10,
+            "max_step": min(max_step, alt_max_step),
             "rtol": 1e-9,
             "atol": 1e-3,
-            "method": "DOP853",
+            # "method": "DOP853",
         })
         return to_result(gamma, result)
     except Exception as e:

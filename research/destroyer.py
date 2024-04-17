@@ -20,7 +20,8 @@ disc = Disc(model, {"vx": math.cos(a * math.pi / 180) * v, "dgamma": rot, "vz": 
                  "nose_up": nose_up, "hyzer": hyzer},
                  Environment(wind=wind))
 
-result = disc.compute_trajectory(20.0, **{"max_step": .1})
+alt_max_step = 0.1 * (model.diameter * math.pi) / v
+result = disc.compute_trajectory(20.0, **{"max_step": alt_max_step})
 times = result.times
 t, x, y, z = result.times, result.x, result.y, result.z
 
