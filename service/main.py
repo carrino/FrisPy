@@ -68,7 +68,7 @@ def flight_path_helper(content):
     if "gamma" in content:
         gamma = content["gamma"]
 
-    flight_max_seconds: float = 15.0
+    flight_max_seconds: float = 12.0
     if "flight_max_seconds" in content:
         flight_max_seconds = min(content["flight_max_seconds"], flight_max_seconds)
 
@@ -117,17 +117,17 @@ def flight_path_helper(content):
     hz = abs(spin) / math.pi / 2
     # In order to get a smooth output for the rotation of the disc
     # we need to have enough samples to spin in the correct direction
-    max_step = 0.1
+    max_step = 0.2
     if hz > 1:
-        max_step = 0.1 / hz
-    alt_max_step = 0.1
+        max_step = 0.2 / hz
+    alt_max_step = 0.2
     if v > model.diameter * math.pi:
-        alt_max_step = 0.1 * (model.diameter * math.pi) / v
+        alt_max_step = 0.2 * (model.diameter * math.pi) / v
     result = None
     try:
         result = disc.compute_trajectory(flight_max_seconds, **{
             "max_step": min(max_step, alt_max_step),
-            "rtol": 1e-9,
+            "rtol": 1e-8,
             "atol": 1e-3,
             # "method": "DOP853",
         })
