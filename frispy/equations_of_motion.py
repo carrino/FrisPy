@@ -105,6 +105,7 @@ class EOM:
         f_ground_drag = np.array([0, 0, 0])
         zhat_dot_up = np.dot(zhat, up)
         f_ground_drag_fraction = 1
+        is_rolling = False
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
             spring_multiplier = -dist_from_ground * 100 # 1g per mm
             ground_drag_constant = 0.5 # TODO: add a ground drag parameter to the environment
@@ -137,10 +138,12 @@ class EOM:
                 translationalEnergy = 0.5 * np.dot(velocity, velocity) * self.model.mass
                 #f_ground_drag *= 2
                 # change rolling friction to apply to the center of mass and update the wz to match the rolling rate
+                is_rolling = True
         res["F_ground_spring"] = f_spring
         res["F_ground_drag"] = f_ground_drag
         res["F_ground"] = f_spring + f_ground_drag * f_ground_drag_fraction
         res["ground_normal"] = up
+        res["is_rolling"] = is_rolling
         res["contact_point_from_center"] = closest_point_from_center
 
         res["F_total"] = res["F_lift"] + res["F_drag"] + res["F_grav"] + res["F_side"] + f_spring + f_ground_drag
@@ -190,6 +193,12 @@ class EOM:
         #     pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
         #     roll = pitching_moment * fhat
         #     w += roll / (i_zz * wz)
+
+        if res["is_rolling"]:
+            ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
+            torque_x = np.dot(ground_torque, xhat) * yhat  # NB: x torque produces y angular velocity
+            torque_y = np.dot(ground_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
+            w += (torque_x + torque_y) / (i_zz * wz)
 
         w_norm = np.linalg.norm(w)
         if w_norm < math.ulp(1.0):
