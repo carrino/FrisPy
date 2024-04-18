@@ -196,8 +196,8 @@ class EOM:
 
         if res["is_rolling"]:
             ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
-            torque_x = np.dot(ground_torque, xhat) * yhat  # NB: x torque produces y angular velocity
-            torque_y = np.dot(ground_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
+            torque_x = np.dot(ground_torque, xhat) * -yhat  # NB: x torque produces y angular velocity
+            torque_y = np.dot(ground_torque, yhat) * xhat  # NB: y torque produces -x angular velocity
             w += (torque_x + torque_y) / (i_zz * wz)
 
         w_norm = np.linalg.norm(w)
