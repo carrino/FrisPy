@@ -225,8 +225,8 @@ class EOM:
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
         #add damping from ground
-        # if np.linalg.norm(res["F_ground"]) > 0:
-        #     acc += np.array([0, 0, -wz * 0.1])
+        if np.linalg.norm(res["F_ground"]) > 0:
+            acc += np.array([0, 0, -wz * 0.1])
 
         plastic_damp = 0.0 # 10% per second
         # add damping due to plastic deformation
