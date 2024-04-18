@@ -226,7 +226,7 @@ class EOM:
 
         #add damping from ground
         if np.linalg.norm(res["F_ground"]) > 0:
-            acc += np.array([0, 0, -wz * 0.1])
+            acc += np.array([0, 0, -wz * 0.5])
 
         plastic_damp = 0.0 # 10% per second
         # add damping due to plastic deformation
