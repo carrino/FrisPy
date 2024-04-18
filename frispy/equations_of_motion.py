@@ -145,8 +145,9 @@ class EOM:
         res["ground_normal"] = up
         res["is_rolling"] = is_rolling
         res["contact_point_from_center"] = closest_point_from_center
+        res["F_air"] = res["F_lift"] + res["F_drag"] + res["F_side"]
 
-        res["F_total"] = res["F_lift"] + res["F_drag"] + res["F_grav"] + res["F_side"] + f_spring + f_ground_drag
+        res["F_total"] = res["F_air"] + res["F_grav"] + f_spring + f_ground_drag
         res["Acc"] = res["F_total"] / self.model.mass
         return res
 
@@ -184,23 +185,12 @@ class EOM:
         fhat = res["unit_vectors"]["fhat"]
         lhat = res["unit_vectors"]["lhat"]
 
-        # if np.linalg.norm(wz) > 2 * np.linalg.norm(w):
-        #     ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
-        #     torque_x = np.dot(ground_torque, xhat) * yhat  # NB: x torque produces y angular velocity
-        #     torque_y = np.dot(ground_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
-        #     w += (torque_x + torque_y) / (i_zz * wz)
-        #
-        #     pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
-        #     roll = pitching_moment * fhat
-        #     w += roll / (i_zz * wz)
-
         if res["is_rolling"]:
-            ground_torque = np.cross(res["contact_point_from_center"], res["F_ground_spring"])
-            # torque_x = np.dot(ground_torque, xhat) * -yhat  # NB: x torque produces y angular velocity
-            # torque_y = np.dot(ground_torque, yhat) * xhat  # NB: y torque produces -x angular velocity
-            torque_x = np.dot(ground_torque, xhat) * xhat  # NB: x torque produces y angular velocity
-            torque_y = np.dot(ground_torque, yhat) * yhat  # NB: y torque produces -x angular velocity
-            w += (torque_x + torque_y) / (i_zz * wz)
+            lift_torque = np.cross(-res["contact_point_from_center"], res["F_grav"] + res["F_air"])
+            # lift_torque2 = np.cross(-res["contact_point_from_center"], res["F_air"])
+            lift_x = np.dot(lift_torque, xhat) * yhat  # NB: x torque produces y angular velocity
+            lift_y = np.dot(lift_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
+            w += (lift_x + lift_y) / (i_zz * wz)
 
         w_norm = np.linalg.norm(w)
         if w_norm < math.ulp(1.0):
@@ -230,7 +220,6 @@ class EOM:
         # Damp angular velocity
         damping = self.model.dampening_factor # wobble damping
         damping_z = self.model.dampening_z # spindown
-
 
         acc = np.array([0.0, 0.0, 0.0])
 
@@ -263,6 +252,10 @@ class EOM:
         pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
         pitching_torque = -pitching_moment * lhat
         acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
+
+        # if res["is_rolling"]:
+        #     lift_torque = np.cross(-res["contact_point_from_center"], res["F_air"] + res["F_grav"])
+        #     acc += np.array([np.dot(lift_torque, xhat) / i_xx, np.dot(lift_torque, yhat) / i_xx, 0])
 
         res["T"] = acc
 
