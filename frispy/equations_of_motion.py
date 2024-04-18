@@ -151,6 +151,7 @@ class EOM:
             self,
             airVelocity: np.ndarray,
             ang_velocity: np.ndarray,
+            position: np.ndarray,
             rotation: Rotation,
             res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
     ) -> Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]]:
@@ -198,12 +199,13 @@ class EOM:
             wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
         res["dq"] = wquat.as_quat() * w_norm / 2
 
-        self.compute_angular_acc(ang_velocity, res, aoa, v_norm)
+        self.compute_angular_acc(ang_velocity, position, res, aoa, v_norm)
         return res
 
     def compute_angular_acc(
             self,
             ang_velocity: np.ndarray,
+            position: np.ndarray,
             res: Dict[str, Union[float, np.ndarray, Dict[str, np.ndarray]]],
             aoa: float,
             v_norm: float):
@@ -224,8 +226,9 @@ class EOM:
         # add damping due to air
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
-        #add damping from ground
-        if np.linalg.norm(res["F_ground"]) > 0:
+        edgePosition = position + res["contact_point_from_center"]
+        if edgePosition[2] < 0.01:
+            # add damping from ground
             acc += np.array([0, 0, -wz * 0.5])
 
         plastic_damp = 0.0 # 10% per second
@@ -278,7 +281,7 @@ class EOM:
         # angular velocity is defined relative to the disc
         ang_velocity = np.array([dphi, dtheta, dgamma])
         result = self.compute_forces(position, rotation, airVelocity, velocity, ang_velocity, gamma)
-        result = self.compute_torques(airVelocity, ang_velocity, rotation, result)
+        result = self.compute_torques(airVelocity, ang_velocity, position, rotation, result)
         derivatives = np.array(
             [
                 vx,
