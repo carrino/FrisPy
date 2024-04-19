@@ -112,7 +112,7 @@ class EOM:
             f_spring = f_normal * up
             w = res["w"]
             edgeVelocity = np.cross(ang_velocity[2] * zhat, closest_point_from_center)
-            edgeVelocity = np.cross(w, closest_point_from_center)
+            #edgeVelocity = np.cross(w, closest_point_from_center)
             #edgeVelocityHat = edgeVelocity / np.linalg.norm(edgeVelocity)
 
             discEdgeVelocity = velocity + edgeVelocity
@@ -123,8 +123,7 @@ class EOM:
             # norm_edge = np.linalg.norm(discEdgeVelocity)
             # if norm_v > norm_edge:
             #     drag_direction = -discEdgeVelocity
-            drag_direction = -discEdgeVelocity - 0.1 * velocity
-            drag_direction = -velocity
+            drag_direction = -discEdgeVelocity
 
             if np.linalg.norm(drag_direction) > 1:
                 drag_direction /= np.linalg.norm(drag_direction)
