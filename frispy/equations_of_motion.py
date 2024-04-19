@@ -124,6 +124,7 @@ class EOM:
             # if norm_v > norm_edge:
             #     drag_direction = -discEdgeVelocity
             drag_direction = -discEdgeVelocity - 0.1 * velocity
+            drag_direction = -velocity
 
             if np.linalg.norm(drag_direction) > 1:
                 drag_direction /= np.linalg.norm(drag_direction)
