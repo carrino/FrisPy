@@ -104,7 +104,6 @@ class EOM:
         f_spring = np.array([0, 0, 0])
         f_ground_drag = np.array([0, 0, 0])
         zhat_dot_up = np.dot(zhat, up)
-        f_ground_drag_fraction = 1
         is_rolling = False
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
             spring_multiplier = -dist_from_ground * 100 # 1g per mm
@@ -124,7 +123,6 @@ class EOM:
             # norm_edge = np.linalg.norm(discEdgeVelocity)
             # if norm_v > norm_edge:
             #     drag_direction = -discEdgeVelocity
-            #     f_ground_drag_fraction *= norm_edge / norm_v
             drag_direction = -discEdgeVelocity
 
             if np.linalg.norm(drag_direction) > 1:
@@ -141,7 +139,7 @@ class EOM:
                 is_rolling = True
         res["F_ground_spring"] = f_spring
         res["F_ground_drag"] = f_ground_drag
-        res["F_ground"] = f_spring + f_ground_drag * f_ground_drag_fraction
+        res["F_ground"] = f_spring + f_ground_drag
         res["ground_normal"] = up
         res["is_rolling"] = is_rolling
         res["contact_point_from_center"] = closest_point_from_center
@@ -244,7 +242,7 @@ class EOM:
         vhat = res["unit_vectors"]["vhat"]
         lhat = res["unit_vectors"]["lhat"]
 
-        ground_torque = np.cross(res["contact_point_from_center"], res["F_ground"])
+        ground_torque = np.cross(res["contact_point_from_center"], res["F_ground_spring"])
 
         acc += np.array([0, 0, np.dot(ground_torque, zhat) / i_zz])
         # if np.linalg.norm(wz) <= 2 * np.linalg.norm(res["w_xy"]):
