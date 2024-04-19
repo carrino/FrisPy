@@ -128,15 +128,12 @@ class EOM:
             if np.linalg.norm(drag_direction) > 1:
                 drag_direction /= np.linalg.norm(drag_direction)
 
-            f_ground_drag = f_normal * ground_drag_constant * drag_direction
             if np.linalg.norm(discEdgeVelocityNormal) < 0.25:
                 # this means we are rolling, replace the drag with a rolling friction
-                # rolling friction in the direction of rolling and static friction in the direction of the normal
-                spinningEnergy = 0.5 * np.dot(w, w) * self.model.I_zz
-                translationalEnergy = 0.5 * np.dot(velocity, velocity) * self.model.mass
-                #f_ground_drag *= 2
-                # change rolling friction to apply to the center of mass and update the wz to match the rolling rate
+                drag_direction = -velocity
                 is_rolling = True
+                ground_drag_constant *= 0.1
+            f_ground_drag = f_normal * ground_drag_constant * drag_direction
         res["F_ground_spring"] = f_spring
         res["F_ground_drag"] = f_ground_drag
         res["F_ground"] = f_spring + f_ground_drag
@@ -183,12 +180,12 @@ class EOM:
         fhat = res["unit_vectors"]["fhat"]
         lhat = res["unit_vectors"]["lhat"]
 
-        # if res["is_rolling"]:
-        #     lift_torque = np.cross(-res["contact_point_from_center"], res["F_grav"] + res["F_air"])
-        #     # lift_torque2 = np.cross(-res["contact_point_from_center"], res["F_air"])
-        #     lift_x = np.dot(lift_torque, xhat) * yhat  # NB: x torque produces y angular velocity
-        #     lift_y = np.dot(lift_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
-        #     w += (lift_x + lift_y) / (i_zz * wz)
+        if res["is_rolling"]:
+            lift_torque = np.cross(-res["contact_point_from_center"], res["F_grav"] + res["F_air"])
+            # lift_torque2 = np.cross(-res["contact_point_from_center"], res["F_air"])
+            lift_x = np.dot(lift_torque, xhat) * yhat  # NB: x torque produces y angular velocity
+            lift_y = np.dot(lift_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
+            w += (lift_x + lift_y) / (i_zz * wz)
 
         w_norm = np.linalg.norm(w)
         if w_norm < math.ulp(1.0):
@@ -224,12 +221,12 @@ class EOM:
         # add damping due to air
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
-        edgePosition = position + res["contact_point_from_center"]
-        if edgePosition[2] < 0.01:
-            # add damping from ground
-            acc += np.array([-wx, -wy, -wz * 0.1])
+        # edgePosition = position + res["contact_point_from_center"]
+        # if edgePosition[2] < 0.01:
+        #     # add damping from ground
+        #     acc += np.array([-wx, -wy, -wz * 0.1])
 
-        plastic_damp = 0.1 # 10% per second
+        plastic_damp = 0.2 # 10% per second
         # add damping due to plastic deformation
         acc += np.array([-wx * plastic_damp, -wy * plastic_damp, 0])
 
@@ -251,9 +248,9 @@ class EOM:
         pitching_torque = -pitching_moment * lhat
         acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
 
-        if res["is_rolling"]:
-            lift_torque = np.cross(-res["contact_point_from_center"], res["F_air"] + res["F_grav"])
-            acc += np.array([np.dot(lift_torque, xhat) / i_xx, np.dot(lift_torque, yhat) / i_xx, 0])
+        # if res["is_rolling"]:
+        #     lift_torque = np.cross(-res["contact_point_from_center"], res["F_air"] + res["F_grav"])
+        #     acc += np.array([np.dot(lift_torque, xhat) / i_xx, np.dot(lift_torque, yhat) / i_xx, 0])
 
         res["T"] = acc
 
