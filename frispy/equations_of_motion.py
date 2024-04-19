@@ -225,9 +225,9 @@ class EOM:
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
         edgePosition = position + res["contact_point_from_center"]
-        # if edgePosition[2] < 0.01:
-        #     # add damping from ground
-        #     acc += np.array([0, 0, -wz * 0.2])
+        if edgePosition[2] < 0.01:
+            # add damping from ground
+            acc += np.array([-wx, -wy, -wz * 0.1])
 
         plastic_damp = 0.1 # 10% per second
         # add damping due to plastic deformation
