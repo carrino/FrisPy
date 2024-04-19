@@ -227,7 +227,7 @@ class EOM:
         edgePosition = position + res["contact_point_from_center"]
         if edgePosition[2] < 0.01:
             # add damping from ground
-            acc += np.array([0, 0, -wz * 0.5])
+            acc += np.array([0, 0, -wz * 0.2])
 
         plastic_damp = 0.0 # 10% per second
         # add damping due to plastic deformation
@@ -243,10 +243,10 @@ class EOM:
         lhat = res["unit_vectors"]["lhat"]
 
         ground_torque = np.cross(res["contact_point_from_center"], res["F_ground_spring"])
+        ground_torque_2 = np.cross(res["contact_point_from_center"], res["F_ground_drag"])
+        acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, np.dot(ground_torque, zhat) / i_zz])
+        acc += np.array([0, 0, np.dot(ground_torque_2, zhat) / i_zz])
 
-        acc += np.array([0, 0, np.dot(ground_torque, zhat) / i_zz])
-        # if np.linalg.norm(wz) <= 2 * np.linalg.norm(res["w_xy"]):
-        acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, 0])
         pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
         pitching_torque = -pitching_moment * lhat
         acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
