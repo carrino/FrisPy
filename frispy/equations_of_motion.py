@@ -106,7 +106,7 @@ class EOM:
         zhat_dot_up = np.dot(zhat, up)
         is_rolling = False
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
-            spring_multiplier = -dist_from_ground * 1000 # 1g per mm
+            spring_multiplier = -dist_from_ground * 100 # 1g per cm
             ground_drag_constant = 0.3 # TODO: add a ground drag parameter to the environment
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
@@ -244,7 +244,7 @@ class EOM:
 
         ground_torque = np.cross(res["contact_point_from_center"], res["F_ground_spring"])
         ground_torque_2 = np.cross(res["contact_point_from_center"], res["F_ground_drag"])
-        acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, np.dot(ground_torque, zhat) / i_zz])
+        acc += np.array([np.dot(ground_torque, xhat) / i_xx * (1-plastic_damp), np.dot(ground_torque, yhat) / i_xx * (1-plastic_damp), np.dot(ground_torque, zhat) / i_zz])
         acc += np.array([0, 0, np.dot(ground_torque_2, zhat) / i_zz])
 
         pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
