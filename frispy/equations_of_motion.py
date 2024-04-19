@@ -225,11 +225,11 @@ class EOM:
         acc += np.array([wx * damping / i_xx, wy * damping / i_xx, wz * damping_z / i_zz]) * res["torque_amplitude"]
 
         edgePosition = position + res["contact_point_from_center"]
-        if edgePosition[2] < 0.01:
-            # add damping from ground
-            acc += np.array([0, 0, -wz * 0.2])
+        # if edgePosition[2] < 0.01:
+        #     # add damping from ground
+        #     acc += np.array([0, 0, -wz * 0.2])
 
-        plastic_damp = 0.0 # 10% per second
+        plastic_damp = 0.1 # 10% per second
         # add damping due to plastic deformation
         acc += np.array([-wx * plastic_damp, -wy * plastic_damp, 0])
 
@@ -251,9 +251,9 @@ class EOM:
         pitching_torque = -pitching_moment * lhat
         acc += np.array([np.dot(pitching_torque, xhat) / i_xx, np.dot(pitching_torque, yhat) / i_xx, 0])
 
-        # if res["is_rolling"]:
-        #     lift_torque = np.cross(-res["contact_point_from_center"], res["F_air"] + res["F_grav"])
-        #     acc += np.array([np.dot(lift_torque, xhat) / i_xx, np.dot(lift_torque, yhat) / i_xx, 0])
+        if res["is_rolling"]:
+            lift_torque = np.cross(-res["contact_point_from_center"], res["F_air"] + res["F_grav"])
+            acc += np.array([np.dot(lift_torque, xhat) / i_xx, np.dot(lift_torque, yhat) / i_xx, 0])
 
         res["T"] = acc
 
