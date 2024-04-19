@@ -183,12 +183,12 @@ class EOM:
         fhat = res["unit_vectors"]["fhat"]
         lhat = res["unit_vectors"]["lhat"]
 
-        if res["is_rolling"]:
-            lift_torque = np.cross(-res["contact_point_from_center"], res["F_grav"] + res["F_air"])
-            # lift_torque2 = np.cross(-res["contact_point_from_center"], res["F_air"])
-            lift_x = np.dot(lift_torque, xhat) * yhat  # NB: x torque produces y angular velocity
-            lift_y = np.dot(lift_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
-            w += (lift_x + lift_y) / (i_zz * wz)
+        # if res["is_rolling"]:
+        #     lift_torque = np.cross(-res["contact_point_from_center"], res["F_grav"] + res["F_air"])
+        #     # lift_torque2 = np.cross(-res["contact_point_from_center"], res["F_air"])
+        #     lift_x = np.dot(lift_torque, xhat) * yhat  # NB: x torque produces y angular velocity
+        #     lift_y = np.dot(lift_torque, yhat) * -xhat  # NB: y torque produces -x angular velocity
+        #     w += (lift_x + lift_y) / (i_zz * wz)
 
         w_norm = np.linalg.norm(w)
         if w_norm < math.ulp(1.0):
