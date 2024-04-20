@@ -19,7 +19,7 @@ v = 55 * 0.44704
 rot = -133.7
 rot = -1000 / 60 * 2 * math.pi
 nose_up = -2.5
-hyzer = -43
+hyzer = 10
 uphill = 5
 wx = -13.2
 wx = 0
@@ -55,7 +55,7 @@ max_step = 0.1 / hz
 #result = disc.compute_trajectory(30, **{"max_step": 1, "rtol": 1e-3, "atol": 1e-5})
 result = disc.compute_trajectory(15.0,
                                  **{"max_step": max_step,
-                                    "rtol": 1e-6,
+                                    "rtol": 1e-8,
                                     "atol": 1e-2,
                                     # "method": "DOP853",
                                     })
@@ -75,10 +75,12 @@ t, x, y, z = result.times, result.x, result.y, result.z
 #plt.plot(t, [i / math.pi * 180 for i in result.aoa])
 
 
-plt.plot(t, result.x)
-plt.plot(t, result.y)
-plt.plot(t, result.z)
+#plt.plot(t, result.x)
+#plt.plot(t, result.y)
+#plt.plot(t, result.z)
 #plt.plot(t, result.dgamma)
+plt.plot(t, result.dphi)
+plt.plot(t, result.dtheta)
 
 
 #plt.plot(t, result.phi)
