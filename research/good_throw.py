@@ -56,7 +56,7 @@ max_step = 0.1 / hz
 result = disc.compute_trajectory(15.0,
                                  **{"max_step": max_step,
                                     "rtol": 1e-8,
-                                    "atol": 1e-2,
+                                    "atol": 1e-3,
                                     # "method": "DOP853",
                                     })
 
