@@ -107,8 +107,8 @@ class EOM:
         is_rolling = False
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
             spring_multiplier = -dist_from_ground * 100 # 1g per cm
-            if spring_multiplier > v_norm / 2:
-                spring_multiplier = v_norm / 2
+            # if spring_multiplier > v_norm / 2:
+            #     spring_multiplier = v_norm / 2
             ground_drag_constant = 0.1 # TODO: add a ground drag parameter to the environment
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
