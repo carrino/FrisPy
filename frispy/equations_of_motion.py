@@ -104,6 +104,9 @@ class EOM:
                 # TODO: Look up wing edge depth above/below center of mass
                 closest_point_from_center -= zhat * edge_below_center_of_mass
                 closest_point_from_center += edge_direction * self.model.diameter / 2
+        closest_point_from_center_hat = closest_point_from_center
+        if np.linalg.norm(closest_point_from_center_hat) > math.ulp(1):
+            closest_point_from_center_hat /= np.linalg.norm(closest_point_from_center_hat)
 
         edge_position = position + closest_point_from_center
 
@@ -122,7 +125,7 @@ class EOM:
             w = res["w"]
             if np.dot(-velocity, up) > 0 and np.dot(closest_point_from_center, velocity) > 0:
                 # add spring force from contact point to center of mass
-                f_spring += f_normal * -closest_point_from_center * np.dot(closest_point_from_center, vhat) * np.dot(-vhat, up) / np.linalg.norm(closest_point_from_center) / np.linalg.norm(closest_point_from_center)
+                f_spring += f_normal * -closest_point_from_center_hat * np.dot(closest_point_from_center_hat, vhat)
             edgeVelocity = np.cross(ang_velocity[2] * zhat, closest_point_from_center)
             edgeVelocity = np.cross(w, closest_point_from_center)
             # edgeVelocityHat = edgeVelocity
