@@ -113,7 +113,6 @@ class EOM:
         dist_from_ground = edge_position[2] - ground_height
         f_spring = np.array([0, 0, 0])
         f_ground_drag = np.array([0, 0, 0])
-        zhat_dot_up = np.dot(zhat, up)
         is_rolling = False
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
             spring_multiplier = -dist_from_ground * 100 # 1g per cm
@@ -123,10 +122,12 @@ class EOM:
             w = res["w"]
             if np.dot(-velocity, up) > 0 and np.dot(closest_point_from_center, velocity) > 0:
                 # add spring force from contact point to center of mass
-                f_spring += f_normal * -closest_point_from_center * np.dot(closest_point_from_center, vhat) / np.linalg.norm(closest_point_from_center) / np.linalg.norm(closest_point_from_center)
+                f_spring += f_normal * -closest_point_from_center * np.dot(closest_point_from_center, vhat) * np.dot(-vhat, up) / np.linalg.norm(closest_point_from_center) / np.linalg.norm(closest_point_from_center)
             edgeVelocity = np.cross(ang_velocity[2] * zhat, closest_point_from_center)
-            #edgeVelocity = np.cross(w, closest_point_from_center)
-            #edgeVelocityHat = edgeVelocity / np.linalg.norm(edgeVelocity)
+            edgeVelocity = np.cross(w, closest_point_from_center)
+            # edgeVelocityHat = edgeVelocity
+            # if np.linalg.norm(edgeVelocityHat) > math.ulp(1):
+            #     edgeVelocityHat /= np.linalg.norm(edgeVelocityHat)
 
             discEdgeVelocity = velocity + edgeVelocity
             discEdgeDotUp = np.dot(discEdgeVelocity, up)
@@ -141,16 +142,15 @@ class EOM:
             if np.linalg.norm(drag_direction) > 1:
                 drag_direction /= np.linalg.norm(drag_direction)
 
-            edgeVelocityHat = edgeVelocity
-            if np.linalg.norm(edgeVelocityHat) > math.ulp(1):
-                edgeVelocityHat /= np.linalg.norm(edgeVelocityHat)
 
             if np.linalg.norm(discEdgeVelocityNormal) < 0.25:
                 # this means we are rolling, replace the drag with a rolling friction
                 drag_direction = -velocity
                 is_rolling = True
 
-            drag_direction -= np.dot(drag_direction, edgeVelocityHat) * edgeVelocityHat
+
+            # add some slipping in the edge velocity direction
+            #drag_direction -= np.dot(drag_direction, edgeVelocityHat) * edgeVelocityHat * 0.1
             f_ground_drag = f_normal * ground_drag_constant * drag_direction
         res["F_ground_spring"] = f_spring
         res["F_ground_drag"] = f_ground_drag
@@ -158,7 +158,6 @@ class EOM:
         res["ground_normal"] = up
         res["is_rolling"] = is_rolling
         res["contact_point_from_center"] = closest_point_from_center
-        #res["contact_point_from_center"] = closest_point_from_center * (1 - abs(np.dot(zhat, up)))
         #res["contact_point_from_center"] = closest_point_from_center * np.linalg.norm(np.cross(zhat, up))
         res["F_air"] = res["F_lift"] + res["F_drag"] + res["F_side"]
 
