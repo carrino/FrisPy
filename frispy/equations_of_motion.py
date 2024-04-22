@@ -161,7 +161,7 @@ class EOM:
         res["ground_normal"] = up
         res["is_rolling"] = is_rolling
         res["contact_point_from_center"] = closest_point_from_center
-        #res["contact_point_from_center"] = closest_point_from_center * np.linalg.norm(np.cross(zhat, up))
+        res["contact_point_from_center"] = closest_point_from_center * np.linalg.norm(np.cross(zhat, up))
         res["F_air"] = res["F_lift"] + res["F_drag"] + res["F_side"]
 
         res["F_total"] = res["F_air"] + res["F_grav"] + f_spring + f_ground_drag
@@ -248,7 +248,7 @@ class EOM:
         #     # add damping from ground
         #     acc += np.array([-wx, -wy, -wz * 0.1])
 
-        plastic_damp = 0.1 # 10% per second
+        plastic_damp = 0.2 # 10% per second
         # add damping due to plastic deformation
         acc += np.array([-wx * plastic_damp, -wy * plastic_damp, 0])
 
@@ -266,7 +266,8 @@ class EOM:
         #ground_torque_2 *= 0.2 # do slipping in the spin direction
         #acc += np.array([np.dot(ground_torque, xhat) / i_xx * (1-plastic_damp), np.dot(ground_torque, yhat) / i_xx * (1-plastic_damp), np.dot(ground_torque, zhat) / i_zz])
         acc += np.array([np.dot(ground_torque, xhat) / i_xx, np.dot(ground_torque, yhat) / i_xx, np.dot(ground_torque, zhat) / i_zz])
-        acc += np.array([0, 0, np.dot(ground_torque_2, zhat) / i_zz])
+        slip_factor = 0.5
+        acc += np.array([0, 0, np.dot(ground_torque_2, zhat) / i_zz * slip_factor])
 
         pitching_moment = self.model.C_y(aoa) * res["torque_amplitude"]
         pitching_torque = -pitching_moment * lhat
