@@ -158,8 +158,9 @@ class EOM:
         res["F_ground"] = f_spring + f_ground_drag
         res["ground_normal"] = up
         res["is_rolling"] = is_rolling
+        res["contact_point_from_center"] = closest_point_from_center
         #res["contact_point_from_center"] = closest_point_from_center * (1 - abs(np.dot(zhat, up)))
-        res["contact_point_from_center"] = closest_point_from_center * np.linalg.norm(np.cross(zhat, up))
+        #res["contact_point_from_center"] = closest_point_from_center * np.linalg.norm(np.cross(zhat, up))
         res["F_air"] = res["F_lift"] + res["F_drag"] + res["F_side"]
 
         res["F_total"] = res["F_air"] + res["F_grav"] + f_spring + f_ground_drag
