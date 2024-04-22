@@ -84,17 +84,27 @@ class EOM:
         )
 
         # TODO: Look up ground normal below the disc position, assume level ground for now
-        up = np.array([0, 0, 1])
+        up = np.array([0.0, 0.0, 1.0])
         zhat = res["unit_vectors"]["zhat"]
 
-        ground_minus_zhat = up - zhat * np.dot(zhat, up)
-        closest_point_from_center = np.array([0, 0, 0])
+        zhat_dot_up = np.dot(zhat, up)
+        ground_minus_zhat = -up + zhat * zhat_dot_up
+        closest_point_from_center = np.array([0.0, 0.0, 0.0])
         if np.linalg.norm(ground_minus_zhat) > math.ulp(1):
-            ground_minus_zhat *= -1
-            closest_point_from_center = ground_minus_zhat / np.linalg.norm(ground_minus_zhat)
-            closest_point_from_center *= self.model.diameter / 2
+            edge_direction = ground_minus_zhat / np.linalg.norm(ground_minus_zhat)
+
             # TODO: Look up wing edge depth above/below center of mass
-            closest_point_from_center += zhat * -0.003
+            edge_below_center_of_mass = 0.003
+            # TODO: assume 12 deg wing angle for now
+            if zhat_dot_up > math.cos(12 * math.pi / 180):
+                rim_width = self.model.rim_width_from_speed(self.model.get_speed())
+                closest_point_from_center -= zhat * (edge_below_center_of_mass + 0.004)
+                closest_point_from_center += edge_direction * (self.model.diameter / 2 - rim_width)
+            else:
+                # TODO: Look up wing edge depth above/below center of mass
+                closest_point_from_center -= zhat * edge_below_center_of_mass
+                closest_point_from_center += edge_direction * self.model.diameter / 2
+
         edge_position = position + closest_point_from_center
 
         # TODO: lookup ground height below edge_position, assume 0 for now
@@ -109,7 +119,7 @@ class EOM:
             spring_multiplier = -dist_from_ground * 100 # 1g per cm
             # if spring_multiplier > v_norm / 2:
             #     spring_multiplier = v_norm / 2
-            ground_drag_constant = 0.1 # TODO: add a ground drag parameter to the environment
+            ground_drag_constant = 0.5 # TODO: add a ground drag parameter to the environment
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
             w = res["w"]
@@ -125,16 +135,23 @@ class EOM:
             # norm_edge = np.linalg.norm(discEdgeVelocity)
             # if norm_v > norm_edge:
             #     drag_direction = -discEdgeVelocity
-            drag_direction = -discEdgeVelocity
 
+            drag_direction = -discEdgeVelocity
             if np.linalg.norm(drag_direction) > 1:
                 drag_direction /= np.linalg.norm(drag_direction)
+
+            edgeVelocityHat = edgeVelocity
+            if np.linalg.norm(edgeVelocityHat) > math.ulp(1):
+                edgeVelocityHat /= np.linalg.norm(edgeVelocityHat)
 
             if np.linalg.norm(discEdgeVelocityNormal) < 0.25:
                 # this means we are rolling, replace the drag with a rolling friction
                 drag_direction = -velocity
                 is_rolling = True
-                ground_drag_constant *= 0.1
+
+            slip_factor = 0.8
+            # introduce slipping in the wz direction
+            drag_direction -= np.dot(drag_direction, edgeVelocityHat) * edgeVelocityHat * slip_factor
             f_ground_drag = f_normal * ground_drag_constant * drag_direction
         res["F_ground_spring"] = f_spring
         res["F_ground_drag"] = f_ground_drag
