@@ -106,7 +106,7 @@ class EOM:
                 closest_point_from_center += edge_direction * self.model.diameter / 2
             closest_point_from_center = edge_direction * self.model.diameter / 2
             closest_point_from_center -= zhat * 0.003
-        closest_point_from_center_hat = closest_point_from_center
+        closest_point_from_center_hat = closest_point_from_center.copy()
         if np.linalg.norm(closest_point_from_center_hat) > math.ulp(1):
             closest_point_from_center_hat /= np.linalg.norm(closest_point_from_center_hat)
 
