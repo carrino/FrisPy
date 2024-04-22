@@ -149,7 +149,7 @@ class EOM:
                 drag_direction = -velocity
                 is_rolling = True
 
-            slip_factor = 0.8
+            slip_factor = 0.5
             # introduce slipping in the wz direction
             drag_direction -= np.dot(drag_direction, edgeVelocityHat) * edgeVelocityHat * slip_factor
             f_ground_drag = f_normal * ground_drag_constant * drag_direction
