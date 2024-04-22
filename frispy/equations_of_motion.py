@@ -117,12 +117,13 @@ class EOM:
         is_rolling = False
         if self.environment.groundPlayEnabled and dist_from_ground < 0:
             spring_multiplier = -dist_from_ground * 100 # 1g per cm
-            # if spring_multiplier > v_norm / 2:
-            #     spring_multiplier = v_norm / 2
             ground_drag_constant = 0.5 # TODO: add a ground drag parameter to the environment
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
             w = res["w"]
+            if np.dot(-velocity, up) > 0 and np.dot(closest_point_from_center, velocity) > 0:
+                # add spring force from contact point to center of mass
+                f_spring += f_normal * -closest_point_from_center * np.dot(closest_point_from_center, vhat) / np.linalg.norm(closest_point_from_center) / np.linalg.norm(closest_point_from_center)
             edgeVelocity = np.cross(ang_velocity[2] * zhat, closest_point_from_center)
             #edgeVelocity = np.cross(w, closest_point_from_center)
             #edgeVelocityHat = edgeVelocity / np.linalg.norm(edgeVelocity)
