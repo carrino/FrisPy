@@ -123,9 +123,9 @@ class EOM:
             f_normal = self.model.mass * spring_multiplier * self.environment.g
             f_spring = f_normal * up
             w = res["w"]
-            if np.dot(-velocity, up) > 0 and np.dot(closest_point_from_center, velocity) > 0:
-                # add spring force from contact point to center of mass
-                f_spring += f_normal * -closest_point_from_center_hat * np.dot(closest_point_from_center_hat, vhat)
+            # if np.dot(-velocity, up) > 0 and np.dot(closest_point_from_center, velocity) > 0:
+            #     # add spring force from contact point to center of mass
+            #     f_spring += f_normal * -closest_point_from_center_hat * np.dot(closest_point_from_center_hat, vhat)
             edgeVelocity = np.cross(ang_velocity[2] * zhat, closest_point_from_center)
             # edgeVelocityHat = edgeVelocity
             # if np.linalg.norm(edgeVelocityHat) > math.ulp(1):
