@@ -98,12 +98,12 @@ class EOM:
             # TODO: assume 12 deg wing angle for now
             if zhat_dot_up > math.cos(12 * math.pi / 180):
                 rim_width = self.model.rim_width_from_speed(self.model.get_speed())
-                closest_point_from_center -= zhat * (edge_below_center_of_mass + 0.004)
-                closest_point_from_center += edge_direction * (self.model.diameter / 2 - rim_width)
+                closest_point_from_center = edge_direction * (self.model.diameter / 2 - rim_width)
+                #closest_point_from_center -= zhat * (edge_below_center_of_mass + 0.004)
             else:
                 # TODO: Look up wing edge depth above/below center of mass
-                closest_point_from_center -= zhat * edge_below_center_of_mass
-                closest_point_from_center += edge_direction * self.model.diameter / 2
+                closest_point_from_center = edge_direction * self.model.diameter / 2
+                # closest_point_from_center -= zhat * edge_below_center_of_mass
         closest_point_from_center_hat = closest_point_from_center.copy()
         if np.linalg.norm(closest_point_from_center_hat) > math.ulp(1):
             closest_point_from_center_hat /= np.linalg.norm(closest_point_from_center_hat)
