@@ -7,27 +7,28 @@ from frispy import Disc
 from frispy import Discs
 
 model = Discs.destroyer
-v = 25
-rot = -v/model.diameter
+v = 26
+wz = -v/model.diameter
 nose_up = 0
-hyzer = 10
+hyzer = 0
 uphill = 10
-rotation_factor = 0
-rotation_factor = 1 / 5
+degWobble = 5
+phase = math.pi / 2
 
-wx = 0
-wy = 0
-#wy = -rot * rotation_factor
-wy = rot * rotation_factor
-#wx = -rot * rotation_factor
+radWobble = degWobble * math.pi / 180
 
-hyzer += math.atan(rotation_factor) / 2 * 180 / math.pi
+wx = math.sin(phase) * radWobble * wz * 2
+wy = -math.cos(phase) * radWobble * wz * 2
+
+hyzer += math.cos(phase) * degWobble
+nose_up += math.sin(phase) * degWobble
 
 # gamma is spin LHBH/RHFH (spin around Z axis)
 # phi is anhyzer (roll around X axis)
 # theta is nose down (pitch around Y axis)
 
-disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": rot, "vz": math.sin(uphill * math.pi / 180) * v,
+x0 = [10, 0]
+disc = Disc(model, {"vx": math.cos(uphill * math.pi / 180) * v, "dgamma": wz, "vz": math.sin(uphill * math.pi / 180) * v,
                     "nose_up": nose_up, "hyzer": hyzer, "dphi": wx, "dtheta": wy, "gamma": 0})
                     #"nose_up": nose_up, "hyzer": hyzer})
 
@@ -47,5 +48,5 @@ plt.plot(t, [i * 180 / math.pi for i in result.phi])
 plt.plot(t, [i * 180 / math.pi for i in result.theta])
 #plt.plot(t, [math.sin(i) for i in result.gamma])
 
-pprint(x[-1])
+print(x[-1] * 3.28084, y[-1] * 3.28084)
 plt.show()
