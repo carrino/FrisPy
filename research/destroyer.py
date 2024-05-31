@@ -8,7 +8,7 @@ from frispy.wind import ConstantWind
 import numpy as np
 
 model = Discs.destroyer
-model = Discs.from_flight_numbers({"glide": 5, "speed": 12, "turn": -3})
+model = Discs.from_flight_numbers({"glide": 5, "speed": 2, "turn": -3})
 mph_to_mps = 0.44704
 v = 60 * mph_to_mps
 rot = -v / model.diameter

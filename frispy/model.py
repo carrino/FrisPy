@@ -248,7 +248,7 @@ class Model:
 
     @staticmethod
     def cavity_multiplier_from_speed(speed: float) -> float:
-        return 1 - (1 - 0.28) * math.sqrt(speed / 14)
+        return 1 - (1 - 0.28) * math.sqrt(speed / 14) + 0.22
 
     @staticmethod
     # rim_width is in meters
@@ -281,7 +281,7 @@ class Model:
         # TODO: figure out why sideways motion happens with 0 pty0
         PTy0 = self.get_value("PTy0")
         # PTya = self.get_value("PTya")
-        PTya = 0.008 * 180 / math.pi
+        PTya = 0.007 * 180 / math.pi
 
         deg_30_in_rad = 30 * math.pi / 180
         if alpha < -deg_30_in_rad:
@@ -292,7 +292,7 @@ class Model:
 
         cavity_pitch_adjust = 0
         angle_of_cavity = 0.28
-        cavity_scale = Model.cavity_multiplier_from_speed(self.get_speed()) *  2 * angle_of_cavity / math.pi
+        cavity_scale = Model.cavity_multiplier_from_speed(self.get_speed()) * 2 * angle_of_cavity / math.pi
 
         # angle_of_cavity = 3 * self.coefficients["cavity_volume"] / self.coefficients["rim_depth"] / self.diameter
         if alpha <= angle_of_cavity:
