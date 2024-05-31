@@ -248,7 +248,7 @@ class Model:
 
     @staticmethod
     def cavity_multiplier_from_speed(speed: float) -> float:
-        return 1 - (1 - 0.28) * math.sqrt(speed / 14) + 0.22
+        return 1 - (1 - 0.28) * math.sqrt(speed / 14) + 0.2
 
     @staticmethod
     # rim_width is in meters

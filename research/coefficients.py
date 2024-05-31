@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from frispy import Discs
 
 model = Discs.ultrastar
-model = Discs.from_flight_numbers({"glide": 5, "speed": 14, "turn": -2})
+model = Discs.from_flight_numbers({"glide": 5, "speed": 1, "turn": -2})
 
 # plot coefficients from -180 to 180
 deg = range(-10, 50)
