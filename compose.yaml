@@ -5,4 +5,4 @@ services:
     # (default stop signal from Compose is SIGTERM)
     stop_signal: SIGINT
     ports:
-      - '8080:8080'
+      - '8000:8000'
