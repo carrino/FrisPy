@@ -1,17 +1,5 @@
-.. |TRAVIS| image:: https://github.com/tmcclintock/FrisPy/workflows/Build%20Status/badge.svg?branch=master
-	    :target: https://github.com/tmcclintock/FrisPy/actions
-.. |COVERALLS| image:: https://coveralls.io/repos/github/tmcclintock/FrisPy/badge.svg?branch=master
-	       :target: https://coveralls.io/github/tmcclintock/FrisPy?branch=master
-.. |LICENSE| image:: https://img.shields.io/badge/License-MIT-yellow.svg
-	     :target: https://opensource.org/licenses/MIT
-
-|TRAVIS| |COVERALLS| |LICENSE|
-
 FrisPy
 ======
-
-Documentation for ``FrisPy`` package can be `found here on RTD
-<https://frispy.readthedocs.io/en/latest/>`_.
 
 This repository contains a physical model for a flying disc. Using this code,
 one can simulate trajectories of discs with varying initial conditions, while
@@ -27,34 +15,6 @@ repository.
 
 Installation
 ------------
-
-The easiest way to install this package is with ``pip``. The PyPI package can
-be viewed `here <https://pypi.org/project/frispy/>`_.
-
-.. code-block:: bash
-
-   pip install frispy
-
-To install from source, there are other steps involved.
-First, you must obtain the code from Github. If you have
-`git <https://git-scm.com/>`_ installed you can clone the repository from
-the command line:
-
-.. code-block:: bash
-
-   git clone https://github.com/tmcclintock/FrisPy.git
-
-or with the GitHub Desktop application. Once you have the code, change
-into the directory and proceed.
-
-Note, the only hard requirements for this package are ``python>=3.6``,
-``numpy``, ``scipy``, and ``matplotlib`` (plotting only). Note that this package
-uses the relatively recent
-`scipy.integrate.solve_ivp
-<https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html#scipy.integrate.solve_ivp>`_
-method, which may not exist in older versions of ``scipy``. If you have these
-three packages, you can install this package with the ``setup.py`` file without
-worrying about creating an environment.
 
 From an Anaconda environment
 ----------------------------
@@ -101,14 +61,20 @@ Running
 
 This can be run in a few different ways.
 
-# Google Cloud Run
-This can be build and run directly in google cloud run.
+Google Cloud Run
+**********
 
-# Run locally
+This can be build and run directly in google cloud run by forking the repo.
+
+Run locally
+**********
+
 python3 -m pip install -r requirements.txt
 python3 service/main.py
 
-# Run From Docker
+Run From Docker
+**********
+
 https://hub.docker.com/r/techdisc/frispy-flight-api
 runs on port localhost:8000
 
