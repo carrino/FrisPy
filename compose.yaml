@@ -1,6 +1,7 @@
 services:
-  web: 
+  frispy-flight-api: 
     build: .
+    image: techdisc/frispy-flight-api:latest
     # flask requires SIGINT to stop gracefully
     # (default stop signal from Compose is SIGTERM)
     stop_signal: SIGINT
