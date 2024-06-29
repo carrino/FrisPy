@@ -99,35 +99,16 @@ Please report any problems you encounter on the `issues page
 Running
 -------
 
-Check out ``example.py`` to see how to run and view results.
-In words, you create a disc and compute its trajectory.
+This can be run in a few different ways.
 
-.. code-block:: python
+# Google Cloud Run
+This can be build and run directly in google cloud run.
 
-   from frispy import Disc
+# Run locally
+python3 -m pip install -r requirements.txt
+python3 service/main.py
 
-   disc = Disc()
-   result = disc.compute_trajectory()
-   times = result.times
-   x, y, z = result.x, result.y, result.z
+# Run From Docker
+https://hub.docker.com/r/techdisc/frispy-flight-api
+runs on port localhost:8000
 
-Once you have a trajectory, you can use that to create visualizations. For
-instance, to plot the height of the disc against one of its horizontal
-coordintes (``x``), you can run:
-
-.. code-block:: python
-
-   import matplotlib.pyplot as plt
-
-   plt.plot(x, z)
-   plt.show()
-
-Soon
-----
-
-There are some big upgrades on the horizon! Stay tuned for:
-
-- animated trajectories
-- documentation
-- example Jupyter notebooks
-- plotting routines
