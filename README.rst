@@ -69,8 +69,10 @@ This can be build and run directly in google cloud run by forking the repo.
 Run locally
 **********
 
-python3 -m pip install -r requirements.txt
-python3 service/main.py
+.. code-block:: bash
+
+  python3 -m pip install -r requirements.txt
+  python3 service/main.py
 
 Run From Docker
 **********
