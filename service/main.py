@@ -21,7 +21,7 @@ CORS(app)
 sock = Sock(app)
 
 @sock.route('/api/ws/flight_path')
-def echo(sock):
+def ws_flight_path(sock):
     input = sock.receive()
 
     # parse string input as json

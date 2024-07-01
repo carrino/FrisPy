@@ -80,7 +80,7 @@ class Disc:
         self.set_default_initial_conditions(initial_conditions)
         self.reset_initial_conditions()
 
-    def compute_trajectory(self, flight_time: float = 7.0, **solver_kwargs) -> FrisPyResults:
+    def compute_trajectory(self, flight_time: float = None, **solver_kwargs) -> FrisPyResults:
         """Call the differential equation solver to compute
         the trajectory. The kinematic variables and timesteps are saved
         as the `current_trajectory` attribute, which is a dictionary,
@@ -111,7 +111,7 @@ class Disc:
             ), "cannot have t_span in solver_kwargs if flight_time is not None"
             t_span = solver_kwargs.pop("t_span")
         else:
-            t_span = (1, flight_time)
+            t_span = (0, flight_time or 15.0)
 
         def hit_ground(t, y): return y[2]
         hit_ground.terminal = True
@@ -176,6 +176,10 @@ class Disc:
         """
         self.initial_conditions = self.default_initial_conditions
         return
+
+    def set_initial_conditions_from_prev_results(self, prev: FrisPyResults) -> List:
+        for i, key in enumerate(self.ordered_coordinate_names):
+            self.initial_conditions[key] = getattr(prev, key)[-1]
 
     def set_default_initial_conditions(
         self, initial_conditions: Optional[Dict[str, float]]
@@ -247,11 +251,6 @@ class Disc:
         return [
             self.initial_conditions[key] for key in self.ordered_coordinate_names
         ]
-
-    @property
-    def set_initial_conditions_from_prev_results(self, prev: FrisPyResults) -> List:
-        for i, key in enumerate(self.ordered_coordinate_names):
-            self.initial_conditions[key] = prev[key][-1]
 
     @property
     def environment(self) -> Environment:
