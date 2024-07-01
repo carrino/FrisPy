@@ -1,12 +1,16 @@
+import json
 import math
 import os
 import logging
+from pprint import pprint
 
 import numpy as np
 from flask import Flask, request
 from frispy import Disc, Discs, Environment
 from frispy.wind import ConstantWind
 from flask_cors import CORS
+from flask_sock import Sock
+from frispy.disc import FrisPyResults
 
 # import google.cloud.logging
 # client = google.cloud.logging.Client()
@@ -14,6 +18,29 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
+sock = Sock(app)
+
+@sock.route('/api/ws/flight_path')
+def echo(sock):
+    input = sock.receive()
+
+    # parse string input as json
+    content = json.loads(input)
+    content['flight_max_seconds'] = 1
+    gamma = content.get('gamma', 0)
+    resultsAndDisc = flight_path_helper(content)
+    results = resultsAndDisc[0]
+    disc = resultsAndDisc[1]
+    sock.send(to_result(gamma, results))
+    disc.set_initial_conditions_from_prev_results(results)
+    while results.z[-1] > 0.0001:
+        endTime = results.times[-1]
+        results = disc.compute_trajectory(t_span=(endTime, endTime + 1))
+        sock.send(to_result(gamma, results))
+        disc.set_initial_conditions_from_prev_results(results)
+
+    sock.close()
+
 
 # same as flight_path, but with multiple discs
 @app.route('/api/flight_paths', methods=['POST'])
@@ -24,12 +51,14 @@ def flight_paths():
     if discs:
         for disc in discs:
             content['disc_name'] = disc
-            res[disc] = flight_path_helper(content)
+            fpr = flight_path_helper(content)
+            res[disc] = to_result(content.get('gamma', 0), fpr[0])
     else:
         discs = content.get('disc_numbers')
         for index, disc in enumerate(discs):
             content['flight_numbers'] = disc
-            res[index] = flight_path_helper(content)
+            fpr = flight_path_helper(content)
+            res[index] = to_result(content.get('gamma', 0), fpr[0])
 
     return res
 
@@ -42,10 +71,10 @@ def flight_paths():
 @app.route('/api/flight_path', methods=['POST'])
 def flight_path():
     content = request.json
-    return flight_path_helper(content)
+    return flight_path_helper(content)[0]
 
 
-def flight_path_helper(content):
+def flight_path_helper(content) -> [FrisPyResults, Disc]:
     model = Discs.from_string(content.get('disc_name'))
     if not model:
         model = Discs.from_flight_numbers(content['flight_numbers'])
@@ -111,14 +140,12 @@ def flight_path_helper(content):
         max_step = 0.45 / hz
     result = None
     try:
-        result = disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
-        return to_result(gamma, result)
+        return [disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7}), disc]
     except Exception as e:
         logging.error("failed to process flight e: %s, content: %s, result: %s", e, content, result)
 
         # add retry on exception
-        result = disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7})
-        return to_result(gamma, result)
+        return [disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7}), disc]
 
 
 def to_result(gamma, result):

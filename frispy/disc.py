@@ -111,7 +111,7 @@ class Disc:
             ), "cannot have t_span in solver_kwargs if flight_time is not None"
             t_span = solver_kwargs.pop("t_span")
         else:
-            t_span = (0, flight_time)
+            t_span = (1, flight_time)
 
         def hit_ground(t, y): return y[2]
         hit_ground.terminal = True
@@ -247,6 +247,11 @@ class Disc:
         return [
             self.initial_conditions[key] for key in self.ordered_coordinate_names
         ]
+
+    @property
+    def set_initial_conditions_from_prev_results(self, prev: FrisPyResults) -> List:
+        for i, key in enumerate(self.ordered_coordinate_names):
+            self.initial_conditions[key] = prev[key][-1]
 
     @property
     def environment(self) -> Environment:
