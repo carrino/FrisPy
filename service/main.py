@@ -25,37 +25,50 @@ sock = Sock(app)
 
 
 @sock.route('/api/ws/flight_path')
-def ws_flight_path(sock):
-    input = sock.receive()
+def ws_flight_path(s):
+    try:
+        data = s.receive(2)
+        if data is None:
+            return
 
-    # parse string input as json
-    content = json.loads(input)
-    gamma = content.get('gamma', 0)
-    disc = create_disc(content)
-    inc_send_over_websocket(disc, gamma, sock)
+        content = json.loads(data)
+        gamma = content.get('gamma', 0)
+        disc = create_disc(content)
+        inc_send_over_websocket(disc, gamma, s)
+    finally:
+        s.close()
 
 
 @sock.route('/api/ws/flight_path_from_summary')
-def ws_flight_path_from_summary(sock):
-    input = sock.receive()
+def ws_flight_path_from_summary(s):
+    try:
+        data = s.receive(2)
+        if data is None:
+            return
 
-    # parse string input as json
-    content = json.loads(input)
-    content = to_flight_path_request(content)
+        content = json.loads(data)
+        content = to_flight_path_request(content)
 
-    disc = create_disc(content)
-    inc_send_over_websocket(disc, 0, sock)
+        disc = create_disc(content)
+        inc_send_over_websocket(disc, 0, s)
+    finally:
+        s.close()
 
 
-def inc_send_over_websocket(disc, gamma, sock):
+def inc_send_over_websocket(disc, gamma, s) -> bool:
     results = compute_trajectory(disc, 1.0)
-    sock.send(json.dumps(to_result(gamma, results)))
+    s.send(json.dumps(to_result(gamma, results)))
     disc.set_initial_conditions_from_prev_results(results)
     while results.z[-1] > 1e-6:
+        # bail early if socket is closed
+        if not s.connected:
+            return False
         results = compute_trajectory(disc, 1.0, results.times[-1])
-        sock.send(json.dumps(to_result(gamma, results)))
+        s.send(json.dumps(to_result(gamma, results)))
         disc.set_initial_conditions_from_prev_results(results)
-    sock.close()
+    # send empty object to signal end of flight
+    s.send("{}")
+    return True
 
 
 # same as flight_path, but with multiple discs
@@ -92,6 +105,17 @@ def flight_path():
     disc = create_disc(content)
     result = compute_trajectory(disc)
     return to_result(content.get('gamma', 0), result)
+
+
+# send over the throw summary to get the flight directly.
+# Add a "z" to set the release height in meters, default is 1m
+@app.route('/api/flight_path_from_summary', methods=['POST'])
+def flight_path_from_summary():
+    content = request.json
+    content = to_flight_path_request(content)
+    disc = create_disc(content)
+    result = compute_trajectory(disc)
+    return to_result(0, result)
 
 
 def create_disc(content) -> Disc:
@@ -224,7 +248,7 @@ def to_flight_path_request(throw_summary: Dict) -> Dict:
     flight_numbers = throw_summary.get("estimatedFlightNumbers", None)
 
     if flight_numbers:
-        flight_path_request["disc_numbers"] = [flight_numbers]
+        flight_path_request["flight_numbers"] = flight_numbers
     else:
         raise ValueError("Must specify flight numbers")
 
