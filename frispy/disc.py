@@ -118,7 +118,7 @@ class Disc:
         result = solve_ivp(
             fun=self.eom.compute_derivatives,
             t_span=t_span,
-            y0=self.initial_conditions_as_ordered_list,
+            y0=self.conditions_as_ordered_list(),
             events=hit_ground,
             **solver_kwargs,
         )
@@ -248,6 +248,11 @@ class Disc:
 
     @property
     def initial_conditions_as_ordered_list(self) -> List:
+        return [
+            self.initial_conditions[key] for key in self.ordered_coordinate_names
+        ]
+
+    def conditions_as_ordered_list(self) -> List:
         return [
             self.initial_conditions[key] for key in self.ordered_coordinate_names
         ]

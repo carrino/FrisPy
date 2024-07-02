@@ -1,3 +1,4 @@
+import time
 import json
 import math
 import os
@@ -26,16 +27,14 @@ def ws_flight_path(sock):
 
     # parse string input as json
     content = json.loads(input)
-    content['flight_max_seconds'] = 1
     gamma = content.get('gamma', 0)
-    resultsAndDisc = flight_path_helper(content)
-    results = resultsAndDisc[0]
-    disc = resultsAndDisc[1]
+    disc = create_disc(content)
+    results = compute_trajectory(disc, 1.0)
     sock.send(to_result(gamma, results))
     disc.set_initial_conditions_from_prev_results(results)
-    while results.z[-1] > 0.0001:
-        endTime = results.times[-1]
-        results = disc.compute_trajectory(t_span=(endTime, endTime + 1))
+
+    while results.z[-1] > 1e-6:
+        results = compute_trajectory(disc, 1.0, results.times[-1])
         sock.send(to_result(gamma, results))
         disc.set_initial_conditions_from_prev_results(results)
 
@@ -51,14 +50,16 @@ def flight_paths():
     if discs:
         for disc in discs:
             content['disc_name'] = disc
-            fpr = flight_path_helper(content)
-            res[disc] = to_result(content.get('gamma', 0), fpr[0])
+            disc = create_disc(content)
+            result = compute_trajectory(disc)
+            res[disc] = to_result(content.get('gamma', 0), result)
     else:
         discs = content.get('disc_numbers')
         for index, disc in enumerate(discs):
             content['flight_numbers'] = disc
-            fpr = flight_path_helper(content)
-            res[index] = to_result(content.get('gamma', 0), fpr[0])
+            disc = create_disc(content)
+            result = compute_trajectory(disc)
+            res[index] = to_result(content.get('gamma', 0), result)
 
     return res
 
@@ -71,10 +72,12 @@ def flight_paths():
 @app.route('/api/flight_path', methods=['POST'])
 def flight_path():
     content = request.json
-    return flight_path_helper(content)[0]
+    disc = create_disc(content)
+    result = compute_trajectory(disc)
+    return to_result(content.get('gamma', 0), result)
 
 
-def flight_path_helper(content) -> [FrisPyResults, Disc]:
+def create_disc(content) -> Disc:
     model = Discs.from_string(content.get('disc_name'))
     if not model:
         model = Discs.from_flight_numbers(content['flight_numbers'])
@@ -94,10 +97,6 @@ def flight_path_helper(content) -> [FrisPyResults, Disc]:
     gamma = 0
     if "gamma" in content:
         gamma = content["gamma"]
-
-    flight_max_seconds: float = 15.0
-    if "flight_max_seconds" in content:
-        flight_max_seconds = min(content["flight_max_seconds"], flight_max_seconds)
 
     # m/s
     wind_speed = 0
@@ -132,20 +131,38 @@ def flight_path_helper(content) -> [FrisPyResults, Disc]:
                 },
                 environment=Environment(wind=wind, air_density=air_density))
 
-    hz = abs(spin) / math.pi / 2
+
+    return disc
+
+
+def compute_trajectory(disc: Disc, flight_max_seconds: float = 15.0, startTime: float = 0.0) -> FrisPyResults:
+    try:
+        # time request and log
+        start_time = time.time()
+        result = compute_trajectory_internal(disc, flight_max_seconds, startTime)
+        end_time = time.time()
+
+        computed_seconds = result.times[-1] - result.times[0]
+        elapsed_time = end_time - start_time
+        logging.info("computed %s seconds of trajectory in %s seconds", computed_seconds, elapsed_time)
+        return result
+    except Exception as e:
+        logging.error("failed to process flight e: %s, content: %s", e, disc)
+
+        # add retry on exception
+        result = compute_trajectory_internal(disc, flight_max_seconds, startTime)
+        return result
+
+
+def compute_trajectory_internal(disc: Disc, flight_max_seconds: float, startTime: float) -> FrisPyResults:
+    hz = abs(disc.initial_conditions['dgamma']) / math.pi / 2
     # In order to get a smooth output for the rotation of the disc
     # we need to have enough samples to spin in the correct direction
     max_step = 0.1
     if hz > 4.5:
         max_step = 0.45 / hz
-    result = None
-    try:
-        return [disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7}), disc]
-    except Exception as e:
-        logging.error("failed to process flight e: %s, content: %s, result: %s", e, content, result)
-
-        # add retry on exception
-        return [disc.compute_trajectory(flight_max_seconds, **{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7}), disc]
+    return disc.compute_trajectory(**{"max_step": max_step, "rtol": 5e-4, "atol": 1e-7,
+                                      "t_span": (startTime, startTime + flight_max_seconds)})
 
 
 def to_result(gamma, result):
@@ -168,4 +185,4 @@ def hello_world():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
