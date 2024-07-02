@@ -3,10 +3,12 @@ import json
 import math
 import os
 import logging
-from pprint import pprint
+from typing import Dict
 
 import numpy as np
 from flask import Flask, request
+from scipy.spatial.transform import Rotation
+
 from frispy import Disc, Discs, Environment
 from frispy.wind import ConstantWind
 from flask_cors import CORS
@@ -21,6 +23,7 @@ app = Flask(__name__)
 CORS(app)
 sock = Sock(app)
 
+
 @sock.route('/api/ws/flight_path')
 def ws_flight_path(sock):
     input = sock.receive()
@@ -29,15 +32,29 @@ def ws_flight_path(sock):
     content = json.loads(input)
     gamma = content.get('gamma', 0)
     disc = create_disc(content)
+    inc_send_over_websocket(disc, gamma, sock)
+
+
+@sock.route('/api/ws/flight_path_from_summary')
+def ws_flight_path_from_summary(sock):
+    input = sock.receive()
+
+    # parse string input as json
+    content = json.loads(input)
+    content = to_flight_path_request(content)
+
+    disc = create_disc(content)
+    inc_send_over_websocket(disc, 0, sock)
+
+
+def inc_send_over_websocket(disc, gamma, sock):
     results = compute_trajectory(disc, 1.0)
     sock.send(json.dumps(to_result(gamma, results)))
     disc.set_initial_conditions_from_prev_results(results)
-
     while results.z[-1] > 1e-6:
         results = compute_trajectory(disc, 1.0, results.times[-1])
         sock.send(json.dumps(to_result(gamma, results)))
         disc.set_initial_conditions_from_prev_results(results)
-
     sock.close()
 
 
@@ -177,6 +194,41 @@ def to_result(gamma, result):
         'gamma': [i + gamma for i in result.gamma],
     }
     return res
+
+
+def to_flight_path_request(throw_summary: Dict) -> Dict:
+    speed_mph_to_mps = 0.44704  # Conversion factor from mph to mps
+
+    flight_path_request = {
+        "z": throw_summary.get("z", 1),
+        "uphill_degrees": throw_summary.get("uphillAngle", 0),
+        "v": throw_summary.get("speedMph", 0) * speed_mph_to_mps,
+        "spin": -throw_summary.get("rotPerSec", 0) * 2 * math.pi,
+        "nose_up_degrees": throw_summary.get("noseAngle", 0),
+        "hyzer_degrees": throw_summary.get("hyzerAngle", 0),
+        "gamma": 0,
+        "wx": 0,
+        "wy": 0
+    }
+
+    gamma = throw_summary.get("gamma", 0)
+    wx = throw_summary.get("wx", 0)
+    wy = throw_summary.get("wy", 0)
+
+    ang_velocity = np.array([wx, wy, 0])
+    ang_velocity = Rotation.from_euler("Z", gamma).apply(ang_velocity)
+
+    flight_path_request["wx"] = ang_velocity[0]
+    flight_path_request["wy"] = -ang_velocity[1]
+
+    flight_numbers = throw_summary.get("estimatedFlightNumbers", None)
+
+    if flight_numbers:
+        flight_path_request["disc_numbers"] = [flight_numbers]
+    else:
+        raise ValueError("Must specify flight numbers")
+
+    return flight_path_request
 
 
 @app.route("/")
