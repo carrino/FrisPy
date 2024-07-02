@@ -30,12 +30,12 @@ def ws_flight_path(sock):
     gamma = content.get('gamma', 0)
     disc = create_disc(content)
     results = compute_trajectory(disc, 1.0)
-    sock.send(to_result(gamma, results))
+    sock.send(json.dumps(to_result(gamma, results)))
     disc.set_initial_conditions_from_prev_results(results)
 
     while results.z[-1] > 1e-6:
         results = compute_trajectory(disc, 1.0, results.times[-1])
-        sock.send(to_result(gamma, results))
+        sock.send(json.dumps(to_result(gamma, results)))
         disc.set_initial_conditions_from_prev_results(results)
 
     sock.close()
