@@ -135,16 +135,12 @@ def create_disc(content) -> Disc:
     if "z" in content:
         z = content["z"]
 
-    gamma = 0
-    if "gamma" in content:
-        gamma = content["gamma"]
-
     # m/s
     wind_speed = 0
     if "wind_speed" in content:
         wind_speed = content["wind_speed"]
 
-    # 0 wind angle means tail wind, 90 deg is right to left
+    # 0 wind angle means tailwind, 90 deg is right to left
     # radians
     wind_angle = 0
     if "wind_angle" in content:
@@ -160,8 +156,7 @@ def create_disc(content) -> Disc:
     a = content['uphill_degrees'] * math.pi / 180
     hyzer = content['hyzer_degrees']
     nose_up = content['nose_up_degrees']
-    disc = Disc(model,
-                {"vx": math.cos(a) * v,
+    disc = Disc(model, {"vx": math.cos(a) * v,
                         "dgamma": spin,
                         "dphi": wx,
                         "dtheta": wy,
@@ -171,7 +166,6 @@ def create_disc(content) -> Disc:
                         "hyzer": hyzer
                 },
                 environment=Environment(wind=wind, air_density=air_density))
-
 
     return disc
 
@@ -224,16 +218,14 @@ def to_flight_path_request(throw_summary: Dict) -> Dict:
     speed_mph_to_mps = 0.44704  # Conversion factor from mph to mps
 
     flight_path_request = {
-        "z": throw_summary.get("z", 1),
+        "z": 1,
         "uphill_degrees": throw_summary.get("uphillAngle", 0),
         "v": throw_summary.get("speedMph", 0) * speed_mph_to_mps,
         "spin": -throw_summary.get("rotPerSec", 0) * 2 * math.pi,
         "nose_up_degrees": throw_summary.get("noseAngle", 0),
         "hyzer_degrees": throw_summary.get("hyzerAngle", 0),
-        "gamma": 0,
-        "wx": 0,
-        "wy": 0
     }
+    flight_path_request.update(throw_summary)
 
     gamma = throw_summary.get("gamma", 0)
     wx = throw_summary.get("wx", 0)
@@ -244,6 +236,7 @@ def to_flight_path_request(throw_summary: Dict) -> Dict:
 
     flight_path_request["wx"] = ang_velocity[0]
     flight_path_request["wy"] = -ang_velocity[1]
+    flight_path_request["gamma"] = 0
 
     flight_numbers = throw_summary.get("estimatedFlightNumbers", None)
 
