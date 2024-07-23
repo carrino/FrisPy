@@ -239,6 +239,8 @@ def to_flight_path_request(throw_summary: Dict) -> Dict:
     flight_path_request["gamma"] = 0
 
     flight_numbers = throw_summary.get("estimatedFlightNumbers", None)
+    if not flight_numbers:
+        flight_numbers = flight_path_request["flight_numbers"]
 
     if flight_numbers:
         flight_path_request["flight_numbers"] = flight_numbers
