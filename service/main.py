@@ -103,6 +103,7 @@ def flight_paths():
 # units are all in SI units. m, m/s, rad/s, unless noted in the name.
 @app.route('/api/flight_path', methods=['POST'])
 def flight_path():
+    logging.error("TEST: flight_path called")
     content = request.json
     disc = create_disc(content)
     result = compute_trajectory(disc)
