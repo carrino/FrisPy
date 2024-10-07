@@ -120,10 +120,11 @@ class EOM:
             # https://www.euclideanspace.com/physics/kinematics/angularvelocity/QuaternionDifferentiation2.pdf
             try:
                 wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
-            except ValueError:
+            except ValueError as e:
                 wquat = Rotation.from_quat([0, 0, 0, 1])
                 print(f"FAILED to handle quaternion. w: {w}, w_norm: {w_norm}", file=sys.stderr)
                 print(sys.exc_info(), file=sys.stderr)
+                print(e, file=sys.stderr)
 
         res["dq"] = wquat.as_quat() * w_norm / 2
 
@@ -185,7 +186,14 @@ class EOM:
         windVector = wind.get_wind_vector(time, position)
         velocity = np.array([vx, vy, vz])
         velocity -= windVector
-        rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
+        try:
+            rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
+        except ValueError as e:
+            rotation: Rotation = Rotation.identity()
+            print(f"FAILED to handle quaternion. qx: {qx}, qy: {qy}, qz: {qz}, qw: {qw}", file=sys.stderr)
+            print(sys.exc_info(), file=sys.stderr)
+            print(e, file=sys.stderr)
+
         # angular velocity is defined relative to the disc
         ang_velocity = np.array([dphi, dtheta, dgamma])
         result = self.compute_forces(rotation, velocity, ang_velocity)
