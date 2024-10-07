@@ -4,6 +4,7 @@ import math
 import os
 import logging
 from typing import Dict
+import logging
 
 import numpy as np
 from flask import Flask, request
@@ -74,6 +75,7 @@ def inc_send_over_websocket(disc, gamma, s) -> bool:
 # same as flight_path, but with multiple discs
 @app.route('/api/flight_paths', methods=['POST'])
 def flight_paths():
+    logging.error("TEST: flight_paths called")
     content = request.json
     discs = content.get('disc_names')
     res = {}
