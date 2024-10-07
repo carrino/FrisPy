@@ -189,9 +189,7 @@ class EOM:
             rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
         except ValueError as e:
             rotation: Rotation = Rotation.identity()
-            print(f"FAILED to handle quaternion. qx: {qx}, qy: {qy}, qz: {qz}, qw: {qw}")
-            print(sys.exc_info())
-            print(e)
+            logging.error(f"FAILED to handle quaternion. qx: {qx}, qy: {qy}, qz: {qz}, qw: {qw}, error: {e}")
 
         # angular velocity is defined relative to the disc
         ang_velocity = np.array([dphi, dtheta, dgamma])
