@@ -1,3 +1,4 @@
+import sys
 from typing import Dict, Union
 
 import numpy as np
@@ -117,7 +118,13 @@ class EOM:
             wquat = Rotation.from_quat([0, 0, 0, 1])
         else:
             # https://www.euclideanspace.com/physics/kinematics/angularvelocity/QuaternionDifferentiation2.pdf
-            wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
+            try:
+                wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
+            except ValueError:
+                wquat = Rotation.from_quat([0, 0, 0, 1])
+                print(f"FAILED to handle quaternion. w: {w}, w_norm: {w_norm}", file=sys.stderr)
+                print(sys.exc_info(), file=sys.stderr)
+
         res["dq"] = wquat.as_quat() * w_norm / 2
 
         self.compute_angular_acc(ang_velocity, torque, res, aoa, v_norm)
