@@ -78,15 +78,15 @@ def flight_paths():
     discs = content.get('disc_names')
     res = {}
     if discs:
-        for disc in discs:
-            content['disc_name'] = disc
+        for discName in discs:
+            content['disc_name'] = discName
             disc = create_disc(content)
             result = compute_trajectory(disc)
-            res[disc] = to_result(content.get('gamma', 0), result)
+            res[discName] = to_result(content.get('gamma', 0), result)
     else:
         discs = content.get('disc_numbers')
-        for index, disc in enumerate(discs):
-            content['flight_numbers'] = disc
+        for index, discNumbers in enumerate(discs):
+            content['flight_numbers'] = discNumbers
             disc = create_disc(content)
             result = compute_trajectory(disc)
             res[index] = to_result(content.get('gamma', 0), result)
