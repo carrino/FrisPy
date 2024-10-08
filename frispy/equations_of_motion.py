@@ -122,8 +122,8 @@ class EOM:
             try:
                 wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
             except ValueError as e:
-                wquat = Rotation.from_quat([0, 0, 0, 1])
                 logging.error(f"FAILED to handle quaternion. w: {w}, w_norm: {w_norm}, error: {e}")
+                raise ValueError(f"{e} (Additional info: w={w}, w_norm={w_norm})") from e
 
         res["dq"] = wquat.as_quat() * w_norm / 2
 
@@ -188,8 +188,8 @@ class EOM:
         try:
             rotation: Rotation = Rotation.from_quat([qx, qy, qz, qw])
         except ValueError as e:
-            rotation: Rotation = Rotation.identity()
             logging.error(f"FAILED to handle quaternion. qx: {qx}, qy: {qy}, qz: {qz}, qw: {qw}, error: {e}")
+            raise ValueError(f"{e} (Additional info: qx={qx}, qy={qy}, qz={qz}, qw={qw})") from e
 
         # angular velocity is defined relative to the disc
         ang_velocity = np.array([dphi, dtheta, dgamma])
