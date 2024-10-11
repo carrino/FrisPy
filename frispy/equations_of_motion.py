@@ -123,7 +123,7 @@ class EOM:
                 wquat = Rotation.from_quat([w[0]/w_norm, w[1]/w_norm, w[2]/w_norm, 0]) * rotation
             except ValueError as e:
                 logging.error(f"FAILED to handle quaternion. w: {w}, w_norm: {w_norm}, error: {e}")
-                raise ValueError(f"{e} (Additional info: w={w}, w_norm={w_norm})") from e
+                raise ValueError(f"{e} (Additional info: wobble={wobble}, ang_v={ang_velocity}, w={w}, w_norm={w_norm})") from e
 
         res["dq"] = wquat.as_quat() * w_norm / 2
 
